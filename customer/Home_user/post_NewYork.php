@@ -133,7 +133,7 @@
     </div>
 
     <footer class="footer">
-        <p>Discover more at our Travel Blog!</p>
+        <p>Discover more at our Let's Travel!</p>
         <nav>
                 <a href="index_homepage.php">HOME PAGE</a>
         </nav>

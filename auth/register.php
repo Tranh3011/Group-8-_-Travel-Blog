@@ -112,126 +112,151 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - TravelBlog</title>
+    <title>Sign Up- Let's Travel</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #f8f9fa;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #030303;
+            color: #F1EFEC;
+        }
+        .navbar { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background-color: #123458; 
+            padding: 10px 20px; 
+            color: #F1EFEC; 
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+            position: relative; z-index: 10; 
+        }
+        .navbar-logo { 
+            display: flex; 
+            align-items: center; 
+        }
+        .navbar-logo img { 
+            height: 50px; 
+            width: auto; 
+            margin-right: 10px; 
+        }
+        .navbar-logo span { 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+            color: #F1EFEC; 
+        }
+        .navbar-links { 
+            display: flex; 
+            gap: 20px; 
+        }
+        .navbar-links a { 
+            color: #F1EFEC; 
+            text-decoration: none; 
+            font-weight: bold; 
+            transition: color 0.3s ease; 
+        }
+        .navbar-links a:hover { color: #D4C9BE; }
+        .register-hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
         }
         .register-container {
-            max-width: 500px;
-            margin: 40px auto; /* Giảm margin top */
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: rgba(18, 52, 88, 0.85);
+            padding: 35px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            color: #F1EFEC;
         }
-        .form-label {
-            font-weight: 500;
-        }
+        .register-container h1 { text-align: center; margin-bottom: 25px; font-weight: bold; }
+        .form-control { border-radius: 5px; background-color: rgba(3, 3, 3, 0.7); color: #F1EFEC; border: 1px solid #D4C9BE; padding: 10px 15px; }
+        .form-control:focus { background-color: rgba(3, 3, 3, 0.8); color: #F1EFEC; border-color: #ffffff; box-shadow: 0 0 0 0.2rem rgba(212, 201, 190, 0.25); }
         .btn-register {
-             background: linear-gradient(90deg,rgba(18, 52, 88, 0.85)); /* Gradient giống navbar */
-             border: none;
-             color: white;
-             padding: 10px 0;
-             font-weight: bold;
-             width: 100%;
-             transition: opacity 0.3s ease;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            background-color: #D4C9BE;
+            color: #030303;
+            border: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        .btn-register:hover {
-            opacity: 0.9;
-            color: white;
-        }
-        .login-link a {
-             color:rgba(18, 52, 88, 0.85); /* Màu cam */
-             font-weight: 500;
-             text-decoration: none;
-        }
-        .login-link a:hover {
-             text-decoration: underline;
-        }
-        /* Style cho thông báo lỗi chung */
+        .btn-register:hover { background-color: #bdae9f; color: #030303; }
+        .text-danger { font-size: 0.9rem; color: #ffdddd; margin-top: 5px; display: block; }
+        .login-link a { color: #D4C9BE; font-weight:bold; text-decoration: none; }
+        .login-link a:hover { text-decoration: underline;}
         .alert-database-error {
             background-color: #f8d7da;
             border-color: #f5c6cb;
-            color:rgba(18, 52, 88, 0.85);
+            color: #030303;
         }
-        /* Navbar styles (nếu bạn không link file riêng) */
-        <?php
-             // Tùy chọn: Include CSS của navbar nếu cần
-             // file_get_contents('../layout/navbar_style.css');
-        ?>
-         .navbar { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(90deg, #ff7e5f, #feb47b); padding: 10px 20px; color: white; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); position: relative; z-index: 100; }
-        .navbar-logo { display: flex; align-items: center; }
-        .navbar-logo img { height: 60px; width: auto; margin-right: 10px; }
-        .navbar-logo h1 { margin: 0; font-size: 20px; color: #fff; }
-        .navbar-links { display: flex; gap: 20px; align-items: center; }
-        .navbar-links a { color: white; text-decoration: none; font-size: 16px; font-weight: bold; transition: color 0.3s ease, transform 0.3s ease; }
-        .navbar-links a:hover { color: #ffcc00; transform: scale(1.1); }
-        @media (max-width: 768px) { .navbar { flex-direction: column; align-items: flex-start; } .navbar-links { flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; margin-top: 10px; } }
-
+        @media (max-width: 768px) {
+            .register-container { padding: 20px 10px; }
+            .navbar { flex-direction: column; align-items: flex-start; }
+            .navbar-links { flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; margin-top: 10px; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="register-container">
-            <h1 class="text-center mb-4">Create Your Account</h1>
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="navbar-logo">
+            <img src="../uploads/logo.jpg" alt="Logo">
+            <span>Let's Travel</span>
+        </div>
+        <div class="navbar-links">
+            <a href="../auth/aboutus.php">About us</a>
+            <a href="../auth/login.php">Login</a>
+            <a href="../auth/register.php">Sign Up</a>
+        </div>
+    </div>
 
+    <div class="register-hero">
+        <div class="register-container">
+            <h1 class="mb-4">Sign Up</h1>
             <?php
-            // Hiển thị lỗi database chung (nếu có)
             if (isset($errors['database'])) {
                 echo '<div class="alert alert-danger alert-database-error">' . htmlspecialchars($errors['database']) . '</div>';
             }
             ?>
-
             <form action="register.php" method="POST" novalidate>
-
                 <div class="mb-3">
                     <label for="email" class="form-label">Email address</label>
                     <input type="email" class="form-control <?php echo isset($errors['email']) ? 'is-invalid' : ''; ?>" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
                     <?php if (isset($errors['email'])): ?>
-                        <div class="invalid-feedback">
-                            <?php echo $errors['email']; ?>
-                        </div>
+                        <div class="text-danger"><?php echo $errors['email']; ?></div>
                     <?php endif; ?>
                 </div>
-
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" class="form-control <?php echo isset($errors['password']) ? 'is-invalid' : ''; ?>" id="password" name="password" required aria-describedby="passwordHelpBlock">
-                     <div id="passwordHelpBlock" class="form-text">
+                    <div id="passwordHelpBlock" class="form-text" style="color:#bdae9f;">
                         Your password must be at least 6 characters long.
                     </div>
                     <?php if (isset($errors['password'])): ?>
-                        <div class="invalid-feedback d-block">
-                            <?php echo $errors['password']; ?>
-                        </div>
+                        <div class="text-danger"><?php echo $errors['password']; ?></div>
                     <?php endif; ?>
                 </div>
-
                 <div class="mb-4">
                     <label for="password_confirm" class="form-label">Confirm Password</label>
                     <input type="password" class="form-control <?php echo isset($errors['password_confirm']) ? 'is-invalid' : ''; ?>" id="password_confirm" name="password_confirm" required>
                     <?php if (isset($errors['password_confirm'])): ?>
-                        <div class="invalid-feedback d-block">
-                            <?php echo $errors['password_confirm']; ?>
-                        </div>
+                        <div class="text-danger"><?php echo $errors['password_confirm']; ?></div>
                     <?php endif; ?>
                 </div>
-
                 <button type="submit" class="btn btn-register">Register</button>
-
             </form>
-
             <p class="text-center mt-4 login-link">
                 Already have an account? <a href="login.php">Login here</a>
             </p>
-
         </div>
     </div>
-
-    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

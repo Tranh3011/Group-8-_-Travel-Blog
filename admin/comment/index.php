@@ -8,12 +8,12 @@ $conn = mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname);
 
 
 
-if (!$conn) {
-    echo 'Failed to connect to db';
-} else {
-    echo 'Connect successfully';
-// or die ("Failed to connect to db");
-}
+// if (!$conn) {
+//     echo 'Failed to connect to db';
+// } else {
+//     echo 'Connect successfully';
+// // or die ("Failed to connect to db");
+// }
 // // require login
 // include('../shared/_required-login.php');
 
@@ -21,7 +21,7 @@ if (!$conn) {
 // include('../db/connect-db.php');
 
 // initial SQL statement
-$sql = "SELECT * FROM `comment` WHERE 1";
+$sql = "SELECT comment.*, user.FirstName FROM `comment` LEFT JOIN `user` ON comment.UserID = user.UserID WHERE 1";
 // $result = mysqli_query($conn, $sql);
 
 $user_id = '';
@@ -90,10 +90,9 @@ mysqli_close($conn);
     <!-- bootstrap js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 </head>
-<body>
+<body class="container">
+    <?php include('../../inc/_navbar.php'); ?>
     <div class="container mt-5">
-        <?php include('../inc/_navbar.php'); ?> 
-
         
         <br/><br/>
         <h1>All Comments</h1>
@@ -132,7 +131,7 @@ mysqli_close($conn);
                 <?php foreach ($comments as $cmt) : ?>
                     <tr class="align-middle text-center">
                         <td><?php echo htmlspecialchars($cmt['CommentID']); ?></td>
-                        <td><?php echo htmlspecialchars($cmt['UserID']); ?></td>
+                        <td><?php echo htmlspecialchars($cmt['FirstName']); ?></td>
                         <td><?php echo htmlspecialchars($cmt['PostID']); ?></td>
                         <td><?php echo htmlspecialchars($cmt['Content']); ?></td>
                         <td><?php echo htmlspecialchars($cmt['Created_at']); ?></td>

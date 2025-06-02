@@ -208,31 +208,31 @@ CREATE TABLE `user` (
   `UserID` int(11) NOT NULL,
   `FirstName` varchar(255) NOT NULL,
   `LastName` varchar(255) NOT NULL,
+  `FullName` varchar(255) GENERATED ALWAYS AS (CONCAT(`FirstName`, ' ', `LastName`)) STORED,
   `Email` varchar(200) NOT NULL,
   `PhoneNumber` varchar(20) DEFAULT NULL,
   `Password` varchar(255) NOT NULL,
   `City` varchar(255) DEFAULT NULL,
   `Country` varchar(255) DEFAULT NULL,
-  `Follower` int(11) DEFAULT NULL,
-  `Following` int(11) DEFAULT NULL,
   `Avatar` varchar(255) DEFAULT NULL,
-  `user_type` varchar(20) NOT NULL DEFAULT 'user'
+  `user_type` varchar(20) NOT NULL DEFAULT 'user',
+  PRIMARY KEY (`UserID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `user`
 --
 
-INSERT INTO `user` (`UserID`, `FirstName`, `LastName`, `Email`, `PhoneNumber`, `Password`, `City`, `Country`, `Follower`, `Following`, `Avatar`, `user_type`) VALUES
-(1, 'Khanh', 'Vu', 'vukhanh605@gmail.com', '0988873211', 'khanh1122@', 'Hanoi', 'Vietnam', 10, 10, '../uploadsavartar_nam.jpg', 'admin'),
-(2, 'Jane', 'Smith', 'jane2324@gmail.com', '0987654322', 'password2', 'London', 'UK', 5, 6, '../uploads/avartar.jpg', 'user'),
-(3, 'Alice', 'Johnson', 'alice1144@gmail.com', '0963829192', 'password3', 'Sydney', 'Australia', 18, 3, '../uploads/avartar_nu1.png', 'user'),
-(4, 'Binh', 'Nguyen', '21070294@vnu.edu.vn', '0988724453', 'password7', 'Hanoi', 'Vietnam', NULL, NULL, '../uploads/avartar_nu.png', 'user'),
-(5, 'Trang', 'Vu', '21070756@vnu.edu.vn', '6677889900', 'password8', 'Hanoi', 'Vietnam', 15, 18, '../uploads/avartar_nu1.png', 'user'),
-(6, 'Tham', 'Nguyen', '20070789@vnu.edu.vn', '0977383842', 'password9', 'Barcelona', 'Spain', 3, 4, '../uploads/avartar.jpg', 'user'),
-(7, 'Hien', 'Tran', 'somintran421@gmail.com', '0988728972', 'hientran@', 'Haiduong', 'Vietnam', NULL, NULL, '../uploads/avartar_nu.png', 'user'),
-(8, 'Hai', 'Tran', 'kevintran123@gmail.com', '0981824432', 'haitran@11', 'Haiduong', 'Vietnam', NULL, NULL, '../uploads/avartar.jpg', 'user'),
-(10, 'Alex', 'Leesung', '21070233@vnu.edu.vn', '0933425561', 'alex12345', 'Seoul', 'Korea', NULL, NULL, '../uploads/avartar_nam.jpg', 'user');
+INSERT INTO `user` (`UserID`, `FirstName`, `LastName`, `FullName`, `Email`, `PhoneNumber`, `Password`, `City`, `Country`, `Avatar`, `user_type`) VALUES
+(1, 'Phuong', 'Vu', 'Phuong Vu', 'phuongvu123@gmail.com', '0988873211', 'phuong1122@', 'Hanoi', 'Vietnam', '../uploadsavartar_nam.jpg', 'admin'),
+(2, 'Jane', 'Smith', 'Jane Smith', 'jane2324@gmail.com', '0987654322', 'password2', 'London', 'UK', '../uploads/avartar.jpg', 'user'),
+(3, 'Alice', 'Johnson', 'Alice Johnson', 'alice1144@gmail.com', '0963829192', 'password3', 'Sydney', 'Australia', '../uploads/avartar_nu1.png', 'user'),
+(4, 'Thuy', 'Anh', 'Thuy Anh', '21070294@vnu.edu.vn', '0988724453', 'password7', 'Hanoi', 'Vietnam', '../uploads/avartar_nu.png', 'user'),
+(5, 'Tra', 'Huong', 'Tra Huong', '21070705@vnu.edu.vn', '6677889900', '123456@', 'Hanoi', 'Vietnam', '../uploads/avartar_nu1.png', 'admin'),
+(6, 'Tuan', 'Kiet', 'Tuan Kiet', '20070789@vnu.edu.vn', '0977383842', 'password9', 'Barcelona', 'Spain', '../uploads/avartar.jpg', 'user'),
+(7, 'Hien', 'Tran', 'Hien Tran', 'somintran421@gmail.com', '0988728972', 'hientran@', 'Haiduong', 'Vietnam', '../uploads/avartar_nu.png', 'user'),
+(8, 'Kevin', 'Tran', 'Kevin Tran', 'kevintran123@gmail.com', '0981824432', 'kevintran@11', 'Haiduong', 'Vietnam', '../uploads/avartar.jpg', 'user'),
+(9, 'Nguyen', 'Tra', 'Nguyen Tra', 'nguyentra3011@vnu.edu.vn', '0933425561', 'Tranh3011', 'Ha Noi', 'Vietnam', '../uploads/avartar_nam.jpg', 'user');
 
 --
 -- Chỉ mục cho các bảng đã đổ

@@ -62,7 +62,7 @@ $users = @mysqli_fetch_all($result, MYSQLI_ASSOC);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 </head>
 <body class="container">
-    <?php include("../inc/_navbar.php"); ?>
+    <?php include("../../inc/_navbar.php"); ?>
 
     <h1>All Users</h1>
 
@@ -90,12 +90,11 @@ $users = @mysqli_fetch_all($result, MYSQLI_ASSOC);
                 <th>UserID</th>
                 <th>FirstName</th>
                 <th>LastName</th>
+                <th>FullName</th>
                 <th>Email</th>
                 <th>PhoneNumber</th>
                 <th>City</th>
                 <th>Country</th>
-                <th>Follower</th>
-                <th>Following</th>
                 <th>Actions</th>
             </tr>
 
@@ -108,12 +107,12 @@ $users = @mysqli_fetch_all($result, MYSQLI_ASSOC);
                 <td><?php echo $user['UserID']; ?></td>
                 <td><?php echo $user['FirstName']; ?></td>
                 <td><?php echo $user['LastName']; ?></td>
+                <td><?php echo $user['FullName']; ?></td>
                 <td><?php echo $user['Email']; ?></td>
                 <td><?php echo $user['PhoneNumber']; ?></td>
                 <td><?php echo $user['City']; ?></td>
                 <td><?php echo $user['Country']; ?></td>
-                <td><?php echo $user['Follower']; ?></td>
-                <td><?php echo $user['Following']; ?></td>
+ 
                 <td>
                 
 
@@ -125,7 +124,6 @@ $users = @mysqli_fetch_all($result, MYSQLI_ASSOC);
             <?php endforeach; ?>
         </table>
     <?php endif; ?>
-
     <!-- pagination -->
     <nav aria-label="Page navigation example">
         <ul class="pagination">

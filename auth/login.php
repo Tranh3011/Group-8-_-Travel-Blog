@@ -1,21 +1,17 @@
 <?php
 session_start();
 
-// Khởi tạo biến
 $email = $password = '';
 $errors = [];
 
-// Xử lý thông báo từ session
 $success_message = $_SESSION['success_message'] ?? '';
 $error_message_redirect = $_SESSION['error_message'] ?? '';
 unset($_SESSION['success_message'], $_SESSION['error_message']);
 
-// Xử lý form submit
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // Validate input
     if (empty($email)) {
         $errors['email'] = 'Please enter your email.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -25,11 +21,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors['password'] = 'Please enter your password.';
     }
 
-    // Nếu không có lỗi validation
     if (empty($errors)) {
         require_once '../database/connect-db.php';
 
-        // Khởi tạo biến $stmt để có thể kiểm tra sau
         $stmt = null;
         
         try {
@@ -47,20 +41,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 } elseif ($user['Password'] != $password) {
                     $errors['password'] = 'Incorrect email or password.';
                 } else {
-                    // Đăng nhập thành công
+                
                     $_SESSION['user_id'] = $user['UserID'];
                     $_SESSION['email'] = $user['Email'];
                     $_SESSION['user_type'] = $user['user_type'];
 
-                    // Đóng statement trước khi chuyển hướng
                     if ($stmt) {
                         $stmt->close();
                     }
                     $conn->close();
 
                     header('Location: ' . ($user['user_type'] == 'admin' ? 
-                        '../Home_user/index_homeAdmin.php' : 
-                        '../Home_user/index_homepage.php'));
+                        '../admin/index_homeAdmin.php' : 
+                        '../customer/Home_user/index_homepage.php'));
                     exit();
                 }
             } else {
@@ -70,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $errors['database'] = "An error occurred. Please try again.";
             error_log("Login error: " . $e->getMessage());
         } finally {
-            // Luôn đóng kết nối và statement trong khối finally
+
             if ($stmt instanceof mysqli_stmt) {
                 $stmt->close();
             }
@@ -86,53 +79,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - TravelBlog</title>
-    <!-- Bootstrap CSS -->
+    <title>Login - Let's Travel</title>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <style>
-        /* Giữ nguyên CSS từ code login trước đó của bạn (phần form nổi trên video) */
         body { 
             margin: 0; 
             font-family: Arial, sans-serif; 
             background-color: #030303; 
-            color: #F1EFEC; }
-        .navbar { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            background-color: #123458; 
-            padding: 10px 20px; 
-            color: #F1EFEC; 
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
-            position: relative; z-index: 10; } 
-            .navbar-logo { 
-                display: flex; 
-                align-items: center; } 
-            .navbar-logo img { 
-                height: 50px; 
-                width: auto; 
-                margin-right: 10px; } 
-            .navbar-logo span { 
-                font-size: 1.5rem; 
-                font-weight: bold; 
-                color: #F1EFEC; } 
-            .navbar-links { 
-                display: flex; 
-                gap: 20px; } 
-            .navbar-links a { 
-                color: #F1EFEC; 
-                text-decoration: none; 
-                font-weight: bold; 
-                transition: color 0.3s ease; 
-            } 
-            .navbar-links a:hover { color: #D4C9BE; }
+            color: #F1EFEC;
+        }
         .hero { 
             position: relative; 
             height: calc(100vh - 70px); /* Chiều cao màn hình trừ navbar */ 
             overflow: hidden; 
             display: flex; 
             justify-content: center; 
-            align-items: center; }
+            align-items: center; 
+        }
         .hero iframe { 
             position: absolute; 
             top: 50%; 
@@ -141,7 +105,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             height: 120%; 
             transform: translate(-50%, -50%); 
             pointer-events: none; 
-            z-index: -1; }
+            z-index: -1; 
+        }
         .login-container { 
             position: relative; 
             z-index: 2; 
@@ -151,7 +116,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); 
             width: 100%; 
             max-width: 420px; 
-            color: #F1EFEC; }
+            color: #F1EFEC; 
+        }
         .login-container h1 { text-align: center; margin-bottom: 25px; font-weight: bold; }
         .form-control { border-radius: 5px; background-color: rgba(3, 3, 3, 0.7); color: #F1EFEC; border: 1px solid #D4C9BE; padding: 10px 15px; }
         .form-control:focus { background-color: rgba(3, 3, 3, 0.8); color: #F1EFEC; border-color: #ffffff; box-shadow: 0 0 0 0.2rem rgba(212, 201, 190, 0.25); }
@@ -160,30 +126,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .text-danger { font-size: 0.9rem; color: #ffdddd; margin-top: 5px; display: block; }
         .register-link a { color: #D4C9BE; font-weight:bold; text-decoration: none; }
         .register-link a:hover { text-decoration: underline;}
+        @media (max-width: 768px) {
+            .login-container { padding: 20px 10px; }
+        }
     </style>
 </head>
 <body>
-     <!-- Navbar (Nó sẽ tự chỉ hiển thị Login vì chưa đăng nhập) -->
-    <div class="navbar">
-        <div class="navbar-logo">
-            <!-- Thay bằng logo thực tế -->
-            <img src="https://img.freepik.com/premium-vector/travel-app-logo-icon-brand-identity-sign-symbol_880781-733.jpg" alt="Logo">
-            <span>TravelBlog</span>
-        </div>
-        <div class="navbar-links">
-            <a href="../auth/aboutus.php">About us</a>
-            <a href="../auth/login.php">Login</a>
-            <a href="../auth/register.php">Register</a>
-        </div>
-    </div>
-
+<?php include("../inc/_navbar.php"); ?>
 
     <!-- Hero Section chứa Video và Form Login -->
     <div class="hero">
         <!-- Video Background -->
         <iframe
             src="https://www.youtube.com/embed/35npVaFGHMY?autoplay=1&mute=1&loop=1&playlist=35npVaFGHMY&controls=0&showinfo=0&modestbranding=1"
-            frameborder="0"
+            frameborder="1"
             allow="autoplay;"
             allowfullscreen>
         </iframe>

@@ -217,26 +217,26 @@ $conn->close();
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
+    <!-- <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <div class="navbar-logo">
-                <img src="../uploads/logo.jpg" alt="Travel Blog Logo" height="50">
+                <img src="../uploads/logo.jpg" alt="Logo">
                 <span>Travel Blog</span>
             </div>
             <div class="navbar-links">
                 <a href="../Home_user/index_homepage.php">Home</a>
-                <a href="../destination/destinations.php">Destinations</a>
-                <a href="../post/posts.php">Blog</a>
+                <a href="../customer/destination/destinations.php">Destinations</a>
+                <a href="../customer/post/posts.php">Blog</a>
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="../Home_user/profile.php">Profile</a>
+                    <a href="../customer/Home_user/profile.php">Profile</a>
                     <a href="../auth/logout.php">Logout</a>
                 <?php else: ?>
                     <a href="../auth/login.php">Login</a>
                 <?php endif; ?>
             </div>
         </div>
-    </nav>
-
+    </nav> -->
+ <?php include("../../inc/_navbar.php"); ?>
     <header>
         <div class="overlay"></div>
         <h1>Exploring Paris</h1>
@@ -293,7 +293,7 @@ $conn->close();
                 </form>
             <?php else: ?>
                 <div class="alert alert-info">
-                    Please <a href="../auth/login.php">login</a> to leave a comment.
+                    Please <a href="../../auth/login.php">login</a> to leave a comment.
                 </div>
             <?php endif; ?>
             
@@ -323,7 +323,7 @@ $conn->close();
     <footer class="footer">
         <p>Discover more at our Travel Blog!</p>
         <nav>
-            <a href="../Home_user/index_homepage.php">HOME PAGE</a>
+            <a href="..customer/Home_user/index_homepage.php">HOME PAGE</a>
         </nav>
     </footer>
 

@@ -1,0 +1,6 @@
+customer/uploads/
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.zip

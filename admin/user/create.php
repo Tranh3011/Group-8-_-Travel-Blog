@@ -132,7 +132,7 @@ if ($_POST) { // post data is not empty
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
 </head>
 <body class="container">
-    <?php include("../inc/_navbar.php"); ?>
+     <?php include("../../inc/_navbar.php"); ?>
 
     <h1>Create a new user</h1>
     <?php if (isset($result) && $result): ?>

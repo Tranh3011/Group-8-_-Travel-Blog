@@ -137,7 +137,7 @@ if ($_POST) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 </head>
 <body class="container">
-    <?php include("../inc/_navbar.php"); ?>
+     <?php include("../../inc/_navbar.php"); ?>
 
     <h1>Update User Information</h1>
     
@@ -185,10 +185,14 @@ if ($_POST) {
         <div class="form-group">
             <label for="fileAvatar" class="form-label">Avatar</label>
             <input type="file" id="fileAvatar" name="fileAvatar" class="form-control">
+            <?php if (!empty($avatar)): ?>
+                <div class="mt-2">
+                    <img src="<?php echo (strpos($avatar, '../uploads/') === 0) ? substr($avatar, 2) : $avatar; ?>" alt="Current Avatar" width="120" style="border-radius:8px;">
+                </div>
+            <?php endif; ?>
         </div>
 
         <button type="submit" class="btn btn-primary">Update</button>
     </form>
-
 </body>
 </html>

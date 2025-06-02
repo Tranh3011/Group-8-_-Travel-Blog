@@ -52,7 +52,7 @@ if ($result) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 </head>
 <body class="container">
-    <?php include("../inc/_navbar.php"); ?>
+     <?php include("../../inc/_navbar.php"); ?>
 
     <h1>Delete Selected Car</h1>
 
