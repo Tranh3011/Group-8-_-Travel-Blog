@@ -112,6 +112,24 @@ INSERT INTO `posts` (`PostID`, `UserID`, `DestinationID`, `Title`, `Content`, `C
 (25, NULL, NULL, 'Sapa - A perfect sightseeing and cultural trip', 'Sapa is a place of natural beauty, with cascading rice terraces, misty valleys, and majestic peaks. It is also a cultural hub, home to several ethnic minority groups with unique customs and traditions.', '2024-12-30 15:40:22', '2025-01-02 09:26:44', '../uploads/sapa.jpg');
 
 -- --------------------------------------------------------
+-- Cấu trúc bảng cho bảng `travel_tips`
+CREATE TABLE `travel_tips` (
+  `TipID` int(11) NOT NULL AUTO_INCREMENT,
+  `TipTitle` varchar(255) NOT NULL,
+  `TipContent` text NOT NULL,
+  `Created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `Updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`TipID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `travel_tips` (`TipID`, `TipTitle`, `TipContent`, `Created_at`, `Updated_at`) VALUES
+(1, 'How to Pack Efficiently for Your Trip', 'Packing light can make your trip easier and more enjoyable. Focus on essentials and use packing cubes to save space.', '2024-12-31 00:01:41', '2024-12-31 00:01:41'),
+(2, 'Top 5 Safety Tips for Travelers', 'Always keep a copy of your passport and important documents. Stay aware of your surroundings, and keep your belongings secure.', '2024-12-31 00:01:41', '2024-12-31 00:01:41'),
+(3, 'How to Find Cheap Flights', 'Look for flights in advance, use fare comparison websites, and set up price alerts to get the best deals on flights.', '2024-12-31 00:01:41', '2024-12-31 00:01:41'),
+(4, 'Essential Travel Apps You Need', 'Download apps for navigation, language translation, currency conversion, and accommodation booking for a smoother travel experience.', '2024-12-31 00:01:41', '2024-12-31 00:01:41'),
+(5, 'How to Stay Healthy While Traveling', 'Stay hydrated, eat balanced meals, and take breaks to avoid burnout during your trip.', '2024-12-31 00:01:41', '2024-12-31 00:01:41');
+
+-- --------------------------------------------------------
 -- Cấu trúc bảng cho bảng `user`
 CREATE TABLE `user` (
   `UserID` int(11) NOT NULL AUTO_INCREMENT,

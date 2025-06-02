@@ -2,7 +2,7 @@
 $dbhost = 'localhost:3307';
 $dbuser = 'root';
 $dbpassword = '';
-$dbname = 'travel_blog';
+$dbname = 'travel blog';
 
 $conn = mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname);
 if (!$conn) {

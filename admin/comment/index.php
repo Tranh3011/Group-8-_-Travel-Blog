@@ -2,7 +2,7 @@
 $dbhost = 'localhost:3307';
 $dbuser = 'root';
 $dbpassword = '';
-$dbname = 'travel_blog';
+$dbname = 'travel blog';
 
 $conn = mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname);
 
@@ -21,18 +21,17 @@ $conn = mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname);
 // include('../db/connect-db.php');
 
 // initial SQL statement
-$sql = "SELECT comment.*, user.FirstName FROM `comment` LEFT JOIN `user` ON comment.UserID = user.UserID WHERE 1";
-// $result = mysqli_query($conn, $sql);
+$sql = "SELECT * FROM `comment` WHERE 1";
 
-$user_id = '';
+$user_fullname = '';
 $post_id = '';
 $comment = '';
 $create_at = '';
 
-// filter conditions by UserID and PostID and Created_at
-if (isset($_GET['UserID']) && !empty($_GET['UserID'])) {
-    $user_id =  $_GET['UserID'];
-    $sql .= " AND UserID = '$user_id'";
+// filter conditions by FullName and PostID and Created_at
+if (isset($_GET['FullName']) && !empty($_GET['FullName'])) {
+    $user_fullname =  $_GET['FullName'];
+    $sql .= " AND FullName LIKE '%" . mysqli_real_escape_string($conn, $user_fullname) . "%'";
 }
 
 if (isset($_GET['PostID']) && !empty($_GET['PostID'])) {
@@ -60,6 +59,10 @@ $offset = ($page-1)*$limit;
 // count total results
 $sqlCount = "SELECT COUNT(*) AS noResults FROM ($sql) AS filteredResults";
 $resultCount = mysqli_query($conn, $sqlCount);
+
+if (!$resultCount) {
+    die('Query error: ' . mysqli_error($conn));
+}
 $noResults = mysqli_fetch_assoc($resultCount)['noResults'];
 $noPages = ceil($noResults / $limit);
 
@@ -67,7 +70,10 @@ $noPages = ceil($noResults / $limit);
 $sql .= " LIMIT $limit OFFSET $offset";
 $result = mysqli_query($conn, $sql);
 
-// process results
+if (!$result) {
+    die('Query error: ' . mysqli_error($conn));
+}
+
 $comments = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 // free result
@@ -101,7 +107,7 @@ mysqli_close($conn);
         <form action="" method="get">
         <div class="row my-4">
             <div class="col-4">
-                <input class="form-control" type="text" name="UserID" placeholder="User ID" value="<?php echo $user_id; ?>">
+                <input class="form-control" type="text" name="FullName" placeholder="Full Name" value="<?php echo $user_fullname; ?>">
             </div>
             <div class="col-4">
                 <input class="form-control" type="text" name="PostID" placeholder="Post ID" value="<?php echo $post_id; ?>">
@@ -131,7 +137,7 @@ mysqli_close($conn);
                 <?php foreach ($comments as $cmt) : ?>
                     <tr class="align-middle text-center">
                         <td><?php echo htmlspecialchars($cmt['CommentID']); ?></td>
-                        <td><?php echo htmlspecialchars($cmt['FirstName']); ?></td>
+                        <td><?php echo htmlspecialchars($cmt['FullName']); ?></td>
                         <td><?php echo htmlspecialchars($cmt['PostID']); ?></td>
                         <td><?php echo htmlspecialchars($cmt['Content']); ?></td>
                         <td><?php echo htmlspecialchars($cmt['Created_at']); ?></td>
@@ -147,19 +153,19 @@ mysqli_close($conn);
             <nav aria-label="Page navigation example">
                 <ul class="pagination">
                     <?php if ($page > 1): ?>
-                        <li class="page-item"><a class="page-link" href="?page=<?php echo $page-1; ?>&user_id=<?php echo htmlspecialchars($user_id); ?>&post_id=<?php echo htmlspecialchars($post_id); ?>&comment=<?php echo htmlspecialchars($comment); ?>&create_at=<?php echo htmlspecialchars($create_at); ?>">Previous</a></li>
+                        <li class="page-item"><a class="page-link" href="?page=<?php echo $page-1; ?>&fullname=<?php echo htmlspecialchars($user_fullname); ?>&post_id=<?php echo htmlspecialchars($post_id); ?>&comment=<?php echo htmlspecialchars($comment); ?>&create_at=<?php echo htmlspecialchars($create_at); ?>">Previous</a></li>
                     <?php endif; ?>
 
                     <?php for ($i = 1; $i <= $noPages; $i++): ?>
                         <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
-                            <a class="page-link" href="?page=<?php echo $i; ?>&user_id=<?php echo htmlspecialchars($user_id); ?>&post_id=<?php echo htmlspecialchars($post_id); ?>&comment=<?php echo htmlspecialchars($comment); ?>&create_at=<?php echo htmlspecialchars($create_at); ?>">
+                            <a class="page-link" href="?page=<?php echo $i; ?>&fullname=<?php echo htmlspecialchars($user_fullname); ?>&post_id=<?php echo htmlspecialchars($post_id); ?>&comment=<?php echo htmlspecialchars($comment); ?>&create_at=<?php echo htmlspecialchars($create_at); ?>">
                                 <?php echo $i; ?>
                             </a>
                         </li>
                     <?php endfor; ?>
 
                     <?php if ($page < $noPages): ?>
-                        <li class="page-item"><a class="page-link" href="?page=<?php echo $page+1; ?>&user_id=<?php echo htmlspecialchars($user_id); ?>&post_id=<?php echo htmlspecialchars($post_id); ?>&comment=<?php echo htmlspecialchars($comment); ?>&create_at=<?php echo htmlspecialchars($create_at); ?>">Next</a></li>
+                        <li class="page-item"><a class="page-link" href="?page=<?php echo $page+1; ?>&fullname=<?php echo htmlspecialchars($user_fullname); ?>&post_id=<?php echo htmlspecialchars($post_id); ?>&comment=<?php echo htmlspecialchars($comment); ?>&create_at=<?php echo htmlspecialchars($create_at); ?>">Next</a></li>
                     <?php endif; ?>
                 </ul>
             </nav>

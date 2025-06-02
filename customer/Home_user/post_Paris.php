@@ -1,57 +1,43 @@
 <?php
-// ...existing code...
+session_start();
 require_once '../../database/connect-db.php';
-// ...existing code...
 
-// Lấy thông tin bài viết
-$post_id = 1; // ID bài viết về Paris
-$sql_post = "SELECT p.*, u.FirstName, u.LastName 
-             FROM posts p
-             JOIN user u ON p.UserID = u.UserID
-             WHERE p.PostID = ?";
-$stmt_post = $conn->prepare($sql_post);
-$stmt_post->bind_param("i", $post_id);
-$stmt_post->execute();
-$post = $stmt_post->get_result()->fetch_assoc();
-$stmt_post->close();
+// Post ID for Paris (set a unique ID for this post, e.g., 1)
+$post_id = 1;
 
-// Xử lý thêm comment
+// Handle add comment
 $errors = [];
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_comment']) && isset($_SESSION['user_id'])) {
     $comment_content = trim($_POST['comment_content']);
-    
     if (empty($comment_content)) {
         $errors['comment'] = "Comment cannot be empty";
     } else {
-        $sql_insert = "INSERT INTO comment (UserID, PostID, Content, Created_at) 
-                      VALUES (?, ?, ?, NOW())";
-        $stmt_insert = $conn->prepare($sql_insert);
-        $stmt_insert->bind_param("iis", $_SESSION['user_id'], $post_id, $comment_content);
-        
-        if ($stmt_insert->execute()) {
-            // Làm mới trang để hiển thị comment mới
+        $user_id = $_SESSION['user_id'];
+        $stmt = $conn->prepare("INSERT INTO comment (UserID, PostID, Content, Created_at) VALUES (?, ?, ?, NOW())");
+        $stmt->bind_param("iis", $user_id, $post_id, $comment_content);
+        if ($stmt->execute()) {
             header("Location: post_Paris.php");
             exit();
         } else {
             $errors['comment'] = "Error adding comment";
         }
-        $stmt_insert->close();
+        $stmt->close();
     }
 }
 
-// Lấy các comment của bài viết
+// Fetch comments
 $sql_comments = "SELECT c.*, u.FirstName, u.LastName, u.Avatar 
                  FROM comment c
                  JOIN user u ON c.UserID = u.UserID
-                 WHERE c.PostID = ?
+                 WHERE c.PostID = $post_id
                  ORDER BY c.Created_at DESC";
-$stmt_comments = $conn->prepare($sql_comments);
-$stmt_comments->bind_param("i", $post_id);
-$stmt_comments->execute();
-$comments = $stmt_comments->get_result()->fetch_all(MYSQLI_ASSOC);
-$stmt_comments->close();
-
-$conn->close();
+$result_comments = $conn->query($sql_comments);
+$comments = [];
+if ($result_comments) {
+    while ($row = $result_comments->fetch_assoc()) {
+        $comments[] = $row;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -68,7 +54,7 @@ $conn->close();
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
-            padding-top: 70px;
+            padding-top: 80px;
         }
 
         .container {
@@ -83,7 +69,6 @@ $conn->close();
             text-align: center;
             padding: 50px 0;
             position: relative;
-            margin-top: 70px;
         }
 
         header h1 {
@@ -91,6 +76,8 @@ $conn->close();
             font-size: 48px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
         }
 
         header img {
@@ -108,12 +95,8 @@ $conn->close();
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
             z-index: 1;
-        }
-
-        header h1 {
-            position: relative;
-            z-index: 2;
         }
 
         .post {
@@ -129,27 +112,9 @@ $conn->close();
             border-radius: 5px;
         }
 
-        .post h2 {
-            color: #333;
-        }
-
-        .post p {
-            color: #666;
-        }
-
-        .recommendation {
-            font-weight: bold;
-            color: #0779e4;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            background: linear-gradient(to bottom, #ffecd2,rgb(148, 149, 239));
-            color: #333;
-            position: relative;
-        }
+        .post h2 { color: #333; }
+        .post p { color: #666; }
+        .recommendation { font-weight: bold; color: #0779e4; }
 
         /* Comment section styles */
         .comment-section {
@@ -164,10 +129,7 @@ $conn->close();
             padding: 15px 0;
         }
 
-        .comment:last-child {
-            border-bottom: none;
-        }
-
+        .comment:last-child { border-bottom: none; }
         .user-avatar {
             width: 50px;
             height: 50px;
@@ -175,68 +137,44 @@ $conn->close();
             object-fit: cover;
         }
 
-        /* Navbar styles */
-        .navbar {
-            background: linear-gradient(90deg, #0a1f44, #142850);
-            padding: 10px 20px;
-            color: white;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
+        /* Footer styles (match index_homepage) */
+        footer {
+            background-color: #123458;
+            color: #F1FEFC;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            margin-top: 50px;
         }
 
-        .navbar-logo {
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar-logo img {
-            height: 50px;
-            width: auto;
-            margin-right: 10px;
-        }
-
-        .navbar-links {
-            display: flex;
-            gap: 20px;
-        }
-
-        .navbar-links a {
-            color: white;
-            text-decoration: none;
+        footer h5 {
             font-weight: bold;
-            transition: color 0.3s ease;
+            font-size: 1.25rem;
         }
 
-        .navbar-links a:hover {
-            color: #ffcc00;
+        footer .footer-link {
+            color: #F1FEFC;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        footer .footer-link:hover {
+            color: #D4C9BE;
+            text-decoration: underline;
+        }
+
+        footer .text-white-50 {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        @media (max-width: 768px) {
+            .container { width: 98%; }
+            footer h5 { font-size: 1.1rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <!-- <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <div class="navbar-logo">
-                <img src="../uploads/logo.jpg" alt="Logo">
-                <span>Travel Blog</span>
-            </div>
-            <div class="navbar-links">
-                <a href="../Home_user/index_homepage.php">Home</a>
-                <a href="../customer/destination/destinations.php">Destinations</a>
-                <a href="../customer/post/posts.php">Blog</a>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="../customer/Home_user/profile.php">Profile</a>
-                    <a href="../auth/logout.php">Logout</a>
-                <?php else: ?>
-                    <a href="../auth/login.php">Login</a>
-                <?php endif; ?>
-            </div>
-        </div>
-    </nav> -->
- <?php include("../../inc/_navbar.php"); ?>
+    <?php include("../../inc/_navbar.php"); ?>
     <header>
         <div class="overlay"></div>
         <h1>Exploring Paris</h1>
@@ -250,21 +188,18 @@ $conn->close();
             <p>The Eiffel Tower is a famous symbol of France and an iconic structure of the city of Paris. Designed by engineer Gustave Eiffel, the tower was built between 1887 and 1889 to commemorate the World's Fair and the 100th anniversary of the French Revolution. At 330 meters high, the tower was the tallest structure in the world until 1930. Today, the Eiffel Tower is one of the most popular tourist attractions in the world, attracting millions of visitors each year thanks to its unique architectural beauty and the amazing panoramic views of Paris from its floors. A visit to the top is a must for any traveler.</p>
             <p class="recommendation">Recommendation: Visit in the evening to see the tower lit up beautifully.</p>
         </div>
-
         <div class="post">
             <h2>2. Louvre Museum</h2>
             <img src="./image/Louvre Museum.jpg" alt="Louvre Museum">
             <p>The Louvre Museum, located in central Paris, is one of the largest and most famous art museums in the world. Founded in 1793, the museum was once a royal palace before becoming a place to display works of art and historical artifacts. The Louvre owns more than 35,000 artifacts, including masterpieces such as Leonardo da Vinci's Mona Lisa and the Venus de Milo statue. With its unique architecture, highlighted by the glass pyramid at the entrance, the Louvre attracts millions of visitors each year, becoming a cultural icon that cannot be missed when visiting Paris.</p>
             <p class="recommendation">Recommendation: Book tickets in advance to skip the long queues.</p>
         </div>
-
         <div class="post">
             <h2>3. Montmartre</h2>
             <img src="./image/Montmartre.jpg" alt="Montmartre">
             <p>Montmartre is a famous hillside district in northern Paris known as a center of art and culture. It is home to the magnificent Sacré-Cœur Basilica, which offers stunning views of the city. Montmartre has been an inspiration to many famous artists, including Picasso, Van Gogh, and Renoir, and today maintains a unique artistic atmosphere with cafes, galleries, and cobblestone streets. The area is a favorite destination for tourists looking for the romantic and artistic beauty that characterizes Paris.</p>
             <p class="recommendation">Recommendation: Explore the area on foot to discover hidden gems.</p>
         </div>
-
         <div class="post">
             <h2>4. Seine River Cruise</h2>
             <img src="./image/Seine River Cruise.jpg" alt="Seine River Cruise">
@@ -275,18 +210,14 @@ $conn->close();
         <!-- Comment Section -->
         <div class="comment-section">
             <h3>Comments (<?= count($comments) ?>)</h3>
-            
             <?php if (isset($errors['comment'])): ?>
                 <div class="alert alert-danger"><?= htmlspecialchars($errors['comment']) ?></div>
             <?php endif; ?>
-            
-            <!-- Form thêm comment (chỉ hiển thị khi đã đăng nhập) -->
             <?php if (isset($_SESSION['user_id'])): ?>
                 <form method="POST" class="mb-4">
                     <div class="mb-3">
                         <label for="comment_content" class="form-label">Add a comment</label>
-                        <textarea class="form-control" id="comment_content" name="comment_content" 
-                                rows="3" required></textarea>
+                        <textarea class="form-control" id="comment_content" name="comment_content" rows="3" required></textarea>
                     </div>
                     <input type="hidden" name="add_comment" value="1">
                     <button type="submit" class="btn btn-primary">Post Comment</button>
@@ -296,8 +227,6 @@ $conn->close();
                     Please <a href="../../auth/login.php">login</a> to leave a comment.
                 </div>
             <?php endif; ?>
-            
-            <!-- Danh sách comment -->
             <?php if (empty($comments)): ?>
                 <div class="alert alert-info">No comments yet. Be the first to comment!</div>
             <?php else: ?>
@@ -319,13 +248,6 @@ $conn->close();
             <?php endif; ?>
         </div>
     </div>
-
-    <footer class="footer">
-        <p>Discover more at our Travel Blog!</p>
-        <nav>
-            <a href="..customer/Home_user/index_homepage.php">HOME PAGE</a>
-        </nav>
-    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

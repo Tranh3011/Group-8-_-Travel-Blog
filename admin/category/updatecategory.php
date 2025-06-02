@@ -14,7 +14,7 @@ if (!$id) {
 $dbhost = 'localhost';
 $dbuser = 'root';
 $dbpassword = '';
-$dbname = 'travel_blog';
+$dbname = 'travel blog';
 
 $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
 or die ('Failed to connect to db.');
@@ -108,7 +108,7 @@ if ($_POST) {
         $dbhost = 'localhost:3307';
         $dbuser = 'root';
         $dbpassword = '';
-        $dbname = 'travel_blog';
+        $dbname = 'travel blog';
 
         $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
         or die ('Failed to connect to db.');

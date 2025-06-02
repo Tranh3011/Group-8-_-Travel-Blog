@@ -14,7 +14,7 @@ if (empty($id)) {
 $dbhost = 'localhost:3307';
 $dbuser = 'root';
 $dbpassword = '';
-$dbname = 'travel_blog';
+$dbname = 'travel blog';
 
 $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname) 
     or die ('Failed to connect to db.');
@@ -185,14 +185,10 @@ if ($_POST) {
         <div class="form-group">
             <label for="fileAvatar" class="form-label">Avatar</label>
             <input type="file" id="fileAvatar" name="fileAvatar" class="form-control">
-            <?php if (!empty($avatar)): ?>
-                <div class="mt-2">
-                    <img src="<?php echo (strpos($avatar, '../uploads/') === 0) ? substr($avatar, 2) : $avatar; ?>" alt="Current Avatar" width="120" style="border-radius:8px;">
-                </div>
-            <?php endif; ?>
         </div>
 
         <button type="submit" class="btn btn-primary">Update</button>
     </form>
+
 </body>
 </html>

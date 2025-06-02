@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Kiểm tra nếu là POST reques
     $dbhost = 'localhost:3307';
     $dbuser = 'root';
     $dbpassword = '';
-    $dbname = 'travel_blog';
+    $dbname = 'travel blog';
     
     $conn = new mysqli($dbhost, $dbuser, $dbpassword, $dbname);
 

@@ -1,4 +1,5 @@
 <?php
+// Move session_start() to the very top, before any output
 if (session_status() == PHP_SESSION_NONE) session_start();
 $user_type = $_SESSION['user_type'] ?? null;
 ?>
@@ -79,14 +80,14 @@ $user_type = $_SESSION['user_type'] ?? null;
                 <a href="/PHP/TravelBlog/admin/index_homeAdmin.php">Home</a>
                 <a href="/PHP/TravelBlog/admin/user/index.php">Manage User</a>
                 <a href="/PHP/TravelBlog/admin/post/index.php">Manage Post</a>
-                <a href="/PHP/TravelBlog/destination/Destination.php">Manage Destination</a>
+                <a href="/PHP/TravelBlog/admin/destination/Destination.php">Manage Destination</a>
                 <a href="/PHP/TravelBlog/admin/category/indexcategory.php">Manage Category</a>
                 <a href="/PHP/TravelBlog/admin/comment/index.php">Manage Comment</a>
                 <a href="/PHP/TravelBlog/auth/logout.php">Logout</a>
-            <?php elseif ($user_type === 'customer'): ?>
+            <?php elseif ($user_type === 'user'): ?>
                 <a href="/PHP/TravelBlog/customer/Home_user/index_homepage.php">Home</a>
                 <a href="/PHP/TravelBlog/customer/Home_user/profile.php">My Profile</a>
-                <a href="/PHP/TravelBlog/customer/post/index.php">My Post</a>
+                <a href="/PHP/TravelBlog/customer/post/index.php">Post</a>
                 <a href="/PHP/TravelBlog/customer/Destination/index.php">Booking Tour</a>
                 <a href="/PHP/TravelBlog/auth/logout.php">Logout</a>
             <?php else: ?>

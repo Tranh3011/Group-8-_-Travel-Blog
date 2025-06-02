@@ -41,55 +41,6 @@ body {
     padding-top: 80px; /* Đảm bảo nội dung không bị navbar che khuất */
 }
 
-/* Navbar */
-.navbar {
-    background-color: #123458; /* Dark blue background */
-    border-bottom: 3px solid #D4C9BE; /* Beige border */
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Thêm hiệu ứng bóng đổ */
-}
-
-.navbar a {
-    color: #F1FEFC !important; /* Light text color */
-    font-weight: 600; /* Chữ đậm */
-}
-
-/* Liên kết trong navbar */
-.navbar-nav .nav-item .nav-link {
-    color: #F1FEFC !important; /* Light text color */
-    padding: 10px 15px;
-    text-transform: uppercase;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Màu nền khi hover */
-.navbar-nav .nav-item .nav-link:hover {
-    background-color: #D4C9BE; /* Beige hover background */
-    color: #030303; /* Dark text on hover */
-    border-radius: 5px;
-}
-
-/* Cập nhật dropdown menu */
-.navbar-nav .nav-item.dropdown .dropdown-menu {
-    background-color: #123458; /* Dark blue background */
-    border: none; /* Loại bỏ viền mặc định của dropdown */
-}
-
-.navbar-nav .nav-item.dropdown .dropdown-item {
-    color: #F1FEFC; /* Light text color */
-    padding: 10px 20px;
-    font-size: 1rem;
-}
-
-/* Màu nền khi hover trên các mục dropdown */
-.navbar-nav .nav-item.dropdown .dropdown-item:hover {
-    background-color: #D4C9BE; /* Beige hover background */
-    color: #030303; /* Dark text on hover */
-}
-
 /* Hero Section */
 .hero-section {
     background-color: #123458; /* Dark blue background */
@@ -103,7 +54,7 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
-    margin-top: 80px; /* Khoảng cách giữa navbar và hero section */
+    /* margin-top: 80px;  Xóa dòng này để ảnh sát navbar */
     text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
 }
 
@@ -232,65 +183,7 @@ footer .text-white-50 {
 </head>
 <body>
 
-<!-- Main navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #123458; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-    <div class="container">
-        <a class="navbar-brand" href="index_homepage.php">
-            <img src="../uploads/logo.jpg" alt="Travel Blog Logo" class="img-fluid" style="max-width: 50px; margin-right: 10px;">
-            Let's Travel
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="index_homepage.php">Home</a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Categories
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Cities">Cities</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Beaches">Beaches</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Cultural%20Sites">Cultural Sites</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Adventure%20Spots">Adventure Spots</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Natural%20Wonders">Natural Wonders</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Luxury%20Destinations">Luxury Destinations</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Family-friendly%20Locations">Family-friendly Locations</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Romantic%20Getaways">Romantic Getaways</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Wildlife">Wildlife</a></li>
-                        <li><a class="dropdown-item" href="/TravelBlog/category/indexcategory.php?category=Culinary%20Destinations">Culinary Destinations</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarPosts" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Posts
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarPosts">
-                        <li><a class="dropdown-item" href="post_Paris.php">Exploring Paris</a></li>
-                        <li><a class="dropdown-item" href="post_NewYork.php">New York Adventures</a></li>
-                        <li><a class="dropdown-item" href="post_Tokyo.php">Tokyo: The traditional and modern city</a></li>
-                        <li><a class="dropdown-item" href="#">Rome: The Eternal City</a></li>
-                        <li><a class="dropdown-item" href="#">London: A City of History</a></li>
-                        <li><a class="dropdown-item" href="#">Sydney: Sun and Surf</a></li>
-                        <li><a class="dropdown-item" href="#">Singapore: A City of Luxury</a></li>
-                        <li><a class="dropdown-item" href="#">Bali</a></li>
-                        <li><a class="dropdown-item" href="#">Sapa - A perfect sightseeing and cultural trip</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="profile.php">Profile</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="../auth/logout.php">Logout</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
+<?php include("../../inc/_navbar.php"); ?>
 
 <!-- Hero Section -->
 <div class="hero-section">
@@ -299,64 +192,43 @@ footer .text-white-50 {
 
 <!-- Recent Posts Section -->
 <div class="container">
-    <h1 class="mb-4">Best places to visit in the world  </h1>
-    
+    <h1 class="mb-4">Best places to visit in the world</h1>
     <div class="row row-cols-1 row-cols-md-3 g-4">
-        <?php
-// Fetch the 3 most recent posts
-$sql = "SELECT
-            d.Name AS destination_name,
-            d.Description,
-            d.Image,
-            c.Name AS category_name,
-            d.post_link
-        FROM
-            posts p
-        JOIN
-            destination d ON p.DestinationID = d.DestinationID
-        JOIN
-            category_destination cd ON d.DestinationID = cd.DestinationID
-        JOIN
-            category c ON cd.CategoryID = c.CategoryID
-        ORDER BY
-            p.Created_at DESC
-        LIMIT 3";
-
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    // Display the recent posts
-    while ($row = $result->fetch_assoc()) {
-        // Prepare variables
-        $image = '../uploads/' . $row['Image']; // Assuming image path is stored relative to 'uploads/'
-        $post_title = $row['destination_name'];
-        $post_description = $row['Description'];
-        $post_link = $row['post_link']; // Assuming 'post_link' column exists in 'destination' table
-        $category_name = $row['category_name'];
-
-        // Check if the image exists, fallback to default image if not found
-        if (!file_exists($image)) {
-            $image = '../uploads/default_image.jpg'; // Fallback image
-        }
-
-        // Displaying the card with the recent post and "Read More" button
-        echo "<div class='col'>
-                <div class='card'>
-                    <img src='" . htmlspecialchars($image) . "' class='card-img-top' alt='" . htmlspecialchars($post_title) . "'>
-                    <div class='card-body'>
-                        <h5 class='card-title'>" . htmlspecialchars($post_title) . "</h5>
-                        <p class='card-text'>" . htmlspecialchars(substr($post_description, 0, 100)) . "...</p>
-                        <p class='card-text'><strong>Category:</strong> " . htmlspecialchars($category_name) . "</p>
-                        <a href='" . htmlspecialchars($post_link) . "' class='btn btn-primary'>Read More</a>
-                    </div>
+        <!-- Static featured posts for Paris, New York, Tokyo -->
+        <div class="col">
+            <div class="card">
+                <img src="./image/paris.jpg" class="card-img-top" alt="Paris">
+                <div class="card-body">
+                    <h5 class="card-title">Exploring Paris</h5>
+                    <p class="card-text">Discover the romance and beauty of Paris, from the Eiffel Tower to the Seine River and the charming streets of Montmartre.</p>
+                    <p class="card-text"><strong>Category:</strong> Cities</p>
+                    <a href="post_Paris.php" class="btn btn-primary">Read More</a>
                 </div>
-            </div>";
-    }
-} else {
-    echo "<p>No posts found.</p>";
-}
-?>
-
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <img src="./image/newyorkadventureclub.jpg" class="card-img-top" alt="New York">
+                <div class="card-body">
+                    <h5 class="card-title">New York Adventures</h5>
+                    <p class="card-text">Experience the vibrant energy of New York City, from the Statue of Liberty to Central Park and the dazzling lights of Times Square.</p>
+                    <p class="card-text"><strong>Category:</strong> Cities</p>
+                    <a href="post_NewYork.php" class="btn btn-primary">Read More</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <img src="./image/tokyo_pic.jpeg" class="card-img-top" alt="Tokyo">
+                <div class="card-body">
+                    <h5 class="card-title">Tokyo: The traditional and modern city</h5>
+                    <p class="card-text">Explore Tokyo's unique blend of tradition and modernity, from ancient shrines to the bustling cityscape and delicious cuisine.</p>
+                    <p class="card-text"><strong>Category:</strong> Cities</p>
+                    <a href="post_Tokyo.php" class="btn btn-primary">Read More</a>
+                </div>
+            </div>
+        </div>
+        <!-- ...existing code for dynamic posts if needed... -->
     </div>
 </div>
 

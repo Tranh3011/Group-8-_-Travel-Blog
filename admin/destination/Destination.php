@@ -4,7 +4,7 @@
 $servername = "localhost:3307";
 $username = "root";
 $password = "";
-$dbname = "travel_blog";
+$dbname = "travel blog";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -25,105 +25,97 @@ $result = $conn->query($sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mountain Travel Destinations</title>
+    <title>Let's Travel</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f6f8;
-        color: #2c3e50;
-    }
-
-    
-
-    /* Container and title */
-    .container {
-        max-width: 2000px;
-        margin: auto;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        color: #f1c40f;
-        margin-bottom: 20px;
-        font-size: 32px;
-    }
-
-    /* Add New Destination Button */
-    a[href="Create.php"] {
-        text-decoration: none;
-        color: #0a1f44;
-        background-color: #f1c40f;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-weight: bold;
-        display: inline-block;
-        margin-bottom: 25px;
-        transition: background-color 0.3s ease;
-    }
-
-    a[href="Create.php"]:hover {
-        background-color: #d4ac0d;
-        color: white;
-    }
-
-    /* Destination card */
-    .destination {
-        border: 1px solid #ccc;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 6px;
-        background-color: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
-    }
-
-    .destination img {
-        max-width: 100%;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-
-    .destination-card h2 {
-        color: #2c3e50;
-    }
-
-    .actions {
-        margin-top: 10px;
-    }
-
-    .actions a {
-        margin-right: 10px;
-        text-decoration: none;
-        color: white;
-        background-color: #007BFF;
-        padding: 6px 12px;
-        border-radius: 5px;
-        transition: opacity 0.3s ease;
-    }
-
+        body {
+            background-color: #f4f6f8;
+            color: #2c3e50;
+        }
+        /* .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        } */
+        h1 {
+            text-align: center;
+            color: #f1c40f;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+        a[href="Create.php"] {
+            text-decoration: none;
+            color: #0a1f44;
+            background-color: #f1c40f;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 25px;
+            transition: background-color 0.3s ease;
+        }
+        a[href="Create.php"]:hover {
+            background-color: #d4ac0d;
+            color: white;
+        }
+        .destination {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .destination img {
+            max-width: 300px;
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .destination-card {
+            flex: 1;
+        }
+        .destination-card h2 {
+            color: #2c3e50;
+        }
+        .actions {
+            margin-top: 10px;
+        }
+        .actions a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: white;
+            background-color: #007BFF;
+            padding: 6px 12px;
+            border-radius: 5px;
+            transition: opacity 0.3s ease;
+        }
+        .actions a.delete {
+            background-color: #dc3545;
+        }
+        .actions a:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
-  
-
     <div class="container">
-        <?php include("../inc/_navbar.php"); ?>
-
+        <?php include("../../inc/_navbar.php"); ?>
         <h1>Travel Destinations</h1>
-
         <a href="Create.php">Add New Destination</a>
-        
         <?php if ($result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>
                 <div class="destination">
-                    <img src="<?php echo htmlspecialchars($row['image']); ?>" width="600" height = "350" alt="<?php echo htmlspecialchars($row['Name']); ?>">
+                    <img src="<?php echo htmlspecialchars($row['image']); ?>" alt="<?php echo htmlspecialchars($row['Name']); ?>">
                     <div class="destination-card">
                         <h2><?php echo htmlspecialchars($row['Name']); ?></h2>
                         <p><?php echo htmlspecialchars($row['Description']); ?></p>
                         <p><strong>Location:</strong> <?php echo htmlspecialchars($row['Location']); ?></p>
-        
                         <div class="actions">
                             <a href="Update.php?id=<?php echo $row['DestinationID']; ?>">Update</a>
                             <a href="Delete.php?id=<?php echo $row['DestinationID']; ?>" class="delete">Delete</a>
@@ -137,7 +129,6 @@ $result = $conn->query($sql);
     </div>
 </body>
 </html>
-
 <?php
 $conn->close();
 ?>
