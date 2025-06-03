@@ -4,12 +4,43 @@ session_start();
 $host = 'localhost:3307';
 $username = 'root';
 $password = '';
-$dbname = 'travel blog';
+$dbname = 'travel_blog';
 $conn = new mysqli($host, $username, $password, $dbname);
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
-// Post ID for Tokyo (set a unique ID for this post, e.g., 3)
-$post_id = 3;
+// Get post ID from URL
+$post_id = isset($_GET['post_id']) ? (int)$_GET['post_id'] : 0;
+
+// Fetch post details
+$sql_post = "SELECT p.Title, p.Content, p.Image, c.Name AS category_name
+             FROM post p
+             LEFT JOIN category c ON p.CategoryID = c.CategoryID
+             WHERE p.PostID = ?";
+$stmt_post = $conn->prepare($sql_post);
+$stmt_post->bind_param("i", $post_id);
+$stmt_post->execute();
+$result_post = $stmt_post->get_result();
+$post = $result_post->fetch_assoc();
+$stmt_post->close();
+
+if (!$post) {
+    die("Post not found.");
+}
+
+// Fetch post sections (e.g., Statue of Liberty, Central Park)
+$sql_sections = "SELECT Title, Content, Image, Recommendation 
+                 FROM post_details 
+                 WHERE PostID = ? 
+                 ORDER BY DetailID";
+$stmt_sections = $conn->prepare($sql_sections);
+$stmt_sections->bind_param("i", $post_id);
+$stmt_sections->execute();
+$result_sections = $stmt_sections->get_result();
+$sections = [];
+while ($row = $result_sections->fetch_assoc()) {
+    $sections[] = $row;
+}
+$stmt_sections->close();
 
 // Handle add comment
 $errors = [];
@@ -22,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_comment']) && isse
         $stmt = $conn->prepare("INSERT INTO comment (UserID, PostID, Content, Created_at) VALUES (?, ?, ?, NOW())");
         $stmt->bind_param("iis", $user_id, $post_id, $comment_content);
         if ($stmt->execute()) {
-            header("Location: post_Tokyo.php");
+            header("Location: post_detail.php?post_id=$post_id");
             exit();
         } else {
             $errors['comment'] = "Error adding comment";
@@ -35,31 +66,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_comment']) && isse
 $sql_comments = "SELECT c.*, u.FirstName, u.LastName, u.Avatar 
                  FROM comment c
                  JOIN user u ON c.UserID = u.UserID
-                 WHERE c.PostID = $post_id
+                 WHERE c.PostID = ?
                  ORDER BY c.Created_at DESC";
-$result_comments = $conn->query($sql_comments);
+$stmt_comments = $conn->prepare($sql_comments);
+$stmt_comments->bind_param("i", $post_id);
+$stmt_comments->execute();
+$result_comments = $stmt_comments->get_result();
 $comments = [];
-if ($result_comments) {
-    while ($row = $result_comments->fetch_assoc()) {
-        $comments[] = $row;
-    }
+while ($row = $result_comments->fetch_assoc()) {
+    $comments[] = $row;
 }
+$stmt_comments->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tokyo the capital of Japan</title>
+    <title><?= htmlspecialchars($post['Title']) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Giữ nguyên CSS từ file post_NewYork.php */
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
-            /* padding-top: 80px; */
+            padding-top: 80px;
         }
         .container {
             width: 80%;
@@ -160,41 +195,26 @@ if ($result_comments) {
     </style>
 </head>
 <body>
-    <?php 
-    include("../../inc/_navbar.php"); 
-    ?>
+    <?php include("../../inc/_navbar.php"); ?>
     <header>
         <div class="overlay"></div>
-        <h1>Tokyo: The capital of Japan, known for its modernity.</h1>
-        <img src="./image/tokyo_pic.jpeg" alt="tokyo">
+        <h1><?= htmlspecialchars($post['Title']) ?></h1>
+        <img src="<?= htmlspecialchars($post['Image']) ?>" alt="<?= htmlspecialchars($post['Title']) ?>">
     </header>
 
     <div class="container">
-        <div class="post">
-            <h2>1. Meiji Shrine</h2>
-            <img src="./image/Meiji Shrine.jpg" alt="Meiji Shrine">
-            <p>Meiji Shrine (Meiji Jingu) was established in 1920 and dedicated to the deified Emperor Meiji and Empress Shoken. One of the most visited shrines on New Year's Day, the shrine often receives thousands of devotees praying for success in love, exams and business. After passing through the shrine's entrance, you'll be greeted with views od massive oak and camphor trees as you walk towards the main sanctuary building (honden). Here, you should bow once before passing through the large sacred gate (otorii), which was reconstructed in 1975. </p>
-            <p class="recommendation">Recommendation: To make a wish, bow and clap your hands twice at the main sanctuary building. You can also take and interpret unique fortune slips (omikuji), which are inscribed with waka poems. The Imperial Garden (gyoen) at the southern end of Meiji Shrine has around 1,500 irises that usually bloom in June. There are also 100,000 trees within its grounds, making this spiritual hotspot is a great place to unwind in Tokyo. </p>
-        </div>
-        <div class="post">
-            <h2>2. Nakamise, Asakusa</h2>
-            <img src="./image/nakamise.jpg" alt="Nakamise">
-            <p>With a history stretching back 300 years, Nakamise in Asakusa is one of the oldest shopping streets in Japan. The row of shops starts from Kaminari-mon Gate – known for its huge 4-metre-long hanging red lantern – and continues for 250 metres to Sensoji, the oldest temple in Japan. On both sides of the street, there are nearly 90 shops and stalls selling regional foods like doll cake (ningyo-yaki), steamed yeast buns (manju) and rice crackers (senbei), as well as Japanese souvenirs such as chopsticks, umbrellas and postcards.</p>
-            <p class="recommendation">Recommendation: There are festivals and events taking place in Asakusa almost every month. Sanjyamatsuri Festival in May, which has been held for more than 700 years, sees several portable shrines (mikoshi) paraded around the streets of Nakamise.</p>
-        </div>
-        <div class="post">
-            <h2>3. Tokyo Skytree</h2>
-            <img src="./image/skytree.jpg" alt="Tokyo Skytree">
-            <p>Tokyo Skytree is a radio tower that's around 634 metres in height, with a 350-metre-high observation deck offering excellent views over the Kanto Plain. Completed in 2012, it was constructed in the Oshiage area of Sumida ward to support digital terrestrial broadcasting. </p>
-            <p>From the observation deck floor, you can take a TEMBO Shuttle, which has a see-through ceiling, to the 450-metre-high Tembo Galleria observation corridor. After stepping out from the shuttle, you can walk to Sorakara Point, Tokyo Skytree's highest accessible point. On the ground level, Tokyo Skytree Town offers facilities such as Sumida Aquarium, Planetarium TENKU, as well as several cafés and restaurants.</p>
-            <p class="recommendation">Recommendation: Exploring the cafes and restaurants in this place is the great experience.</p>
-        </div>
-        <div class="post">
-            <h2>4. Shinjuku Gyoen</h2>
-            <img src="./image/shinjuku.jpg" alt="Shinjuku Gyoen">
-            <p>Shinjuku Gyoen was established as Japan’s first imperial garden in 1906. It’s a landscaped garden typical of the Meiji period. Within the surrounding area of 3.5 sq km, you'll find around 100,000 trees and various flowers from all 4 seasons – cherry blossom in springtime, hydrangeas in summer, cluster-amaryllis and osmanthus in autumn, and Japanese daffodils and camellia in winter. </p>
-            <p class="recommendation">Recommendation: You can also observe tropical flowers and fruits in Shinjuku Gyoen's onsite greenhouse. There are cafés, resting houses and tearooms as well, allowing you to enjoy a relaxing walk around this green oasis. Shinjuku Gyoen is within a 10-minute walk from Shinjuku Station.</p>
-        </div>
+        <p><strong>Category:</strong> <?= htmlspecialchars($post['category_name'] ?? 'Uncategorized') ?></p>
+        <p><?= nl2br(htmlspecialchars($post['Content'])) ?></p>
+
+        <!-- Post Sections -->
+        <?php foreach ($sections as $section): ?>
+            <div class="post">
+                <h2><?= htmlspecialchars($section['Title']) ?></h2>
+                <img src="<?= htmlspecialchars($section['Image']) ?>" alt="<?= htmlspecialchars($section['Title']) ?>">
+                <p><?= nl2br(htmlspecialchars($section['Content'])) ?></p>
+                <p class="recommendation">Recommendation: <?= htmlspecialchars($section['Recommendation']) ?></p>
+            </div>
+        <?php endforeach; ?>
 
         <!-- Comment Section -->
         <div class="comment-section">
@@ -203,7 +223,6 @@ if ($result_comments) {
                 <div class="alert alert-danger"><?= htmlspecialchars($errors['comment']) ?></div>
             <?php endif; ?>
             <?php if (isset($_SESSION['user_id'])): ?>
-                <!-- Form thêm bình luận -->
                 <form method="POST" class="mb-4">
                     <div class="mb-3">
                         <label for="comment_content" class="form-label">Add a comment</label>
@@ -220,12 +239,11 @@ if ($result_comments) {
             <?php if (empty($comments)): ?>
                 <div class="alert alert-info">No comments yet. Be the first to comment!</div>
             <?php else: ?>
-                <!-- Hiển thị danh sách bình luận -->
                 <?php foreach ($comments as $comment): ?>
                     <div class="comment">
                         <div class="d-flex">
-                            <img src="<?= htmlspecialchars($comment['Avatar'] ?? '../uploads/default-avatar.jpg') ?>" 
-                                alt="User" class="user-avatar me-3">
+                            <img src="<?= htmlspecialchars($comment['Avatar'] ?? '../Uploads/default-avatar.jpg') ?>" 
+                                 alt="User" class="user-avatar me-3">
                             <div>
                                 <h6 class="mb-1"><?= htmlspecialchars($comment['FirstName'] . ' ' . $comment['LastName']) ?></h6>
                                 <small class="text-muted">
@@ -239,6 +257,43 @@ if ($result_comments) {
             <?php endif; ?>
         </div>
     </div>
+
+    <footer>
+        <div class="container py-5">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="text-white mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="footer-link">About Us</a></li>
+                        <li><a href="#" class="footer-link">Our Services</a></li>
+                        <li><a href="#" class="footer-link">Privacy Policy</a></li>
+                        <li><a href="#" class="footer-link">Support</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-white mb-3">Travel Tips</h5>
+                    <ul class="list-unstyled">
+                        <?php while ($tip = $tips_result->fetch_assoc()): ?>
+                            <li><a href="#" class="footer-link"><?= htmlspecialchars($tip['TipTitle']) ?></a></li>
+                        <?php endwhile; ?>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-white mb-3">Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="mailto:info@travelblog.com" class="footer-link">Email: info@travelblog.com</a></li>
+                        <li><a href="tel:+123456789" class="footer-link">Phone: +123 456 789</a></li>
+                        <li><a href="#" class="footer-link">Address: 123 Travel St, City, Country</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col text-center">
+                    <p class="text-white-50">© 2025 Travel Blog. All Rights Reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

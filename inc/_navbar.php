@@ -70,6 +70,7 @@ $user_type = $_SESSION['user_type'] ?? null;
     </style>
 </head>
 <body>
+    
     <div class="navbar">
         <div class="navbar-logo">
             <img src="../uploads/logo.jpg" alt="Logo">
@@ -85,7 +86,7 @@ $user_type = $_SESSION['user_type'] ?? null;
                 <a href="/PHP/TravelBlog/admin/comment/index.php">Manage Comment</a>
                 <a href="/PHP/TravelBlog/auth/logout.php">Logout</a>
             <?php elseif ($user_type === 'user'): ?>
-                <a href="/PHP/TravelBlog/customer/Home_user/index_homepage.php">Home</a>
+                <a href="/PHP/TravelBlog/customer/Home_user/index_homepage old.php">Home</a>
                 <a href="/PHP/TravelBlog/customer/Home_user/profile.php">My Profile</a>
                 <a href="/PHP/TravelBlog/customer/post/index.php">Post</a>
                 <a href="/PHP/TravelBlog/customer/Destination/index.php">Booking Tour</a>

@@ -169,7 +169,7 @@ if ($res_dest) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <style>
+    <!-- <style>
         body {
             padding-top: 80px;
             background-color: #F1FEFC;
@@ -269,7 +269,7 @@ if ($res_dest) {
                 padding: 8px 10px;
             }
         }
-    </style>
+    </style> -->
 </head>
 <body>
     <?php include("../../inc/_navbar.php"); ?>

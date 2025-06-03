@@ -54,7 +54,7 @@ if ($result_comments) {
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
-            padding-top: 80px;
+            /* padding-top: 80px; */
         }
 
         .container {
