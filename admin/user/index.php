@@ -61,9 +61,9 @@ $users = @mysqli_fetch_all($result, MYSQLI_ASSOC);
     <title>Users</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 </head>
-<body class="container">
+<body>
     <?php include("../../inc/_navbar.php"); ?>
-
+    <div class="container">
     <h1>All Users</h1>
 
     <a href="create.php" class="btn btn-success btn-sm mt-3 mb-3">Create a new user</a>

@@ -80,9 +80,10 @@ if ($_POST) {
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"></script>
 </head>
-<body class="container">
-    <?php include("../inc/_navbar.php") ?>
-    <h1>Create a New Post</h1>
+<body>
+    <?php include("../../inc/_navbar.php") ?>
+    <div class="container">
+    <h1><strong>Create a New Post</h1>
     <?php if (isset($result) && $result): ?>
         <h2 class="text-success">Inserted successfully! Your are redirecting to index.php after 3s...</h2>
         <script>

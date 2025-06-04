@@ -1,4 +1,3 @@
-create.php
 <?php
 // PHPdeveloperbot speaking
 
@@ -12,6 +11,8 @@ $password = '';
 $city = '';
 $country = '';
 $fileAvatar = '';
+$avatar = ''; // add this line to initialize $avatar
+$result = false; // always initialize $result
 
 if ($_POST) { // post data is not empty
     //-- get user data
@@ -36,8 +37,12 @@ if ($_POST) { // post data is not empty
     if (isset($_POST['country'])) {
         $country = $_POST['country'];
     }
-    if (file_exists($_FILES['fileAvatar']['tmp_name'])) {
-        $fileAvatar = $_FILES['fileAvatar']; // assign fileAvatar = array chứa các nội dung của file avatar
+    if (
+        isset($_FILES['fileAvatar']) &&
+        isset($_FILES['fileAvatar']['tmp_name']) &&
+        is_uploaded_file($_FILES['fileAvatar']['tmp_name'])
+    ) {
+        $fileAvatar = $_FILES['fileAvatar'];
     }
 
     // -- clean user data
@@ -93,32 +98,40 @@ if ($_POST) { // post data is not empty
             $errors['fileAvatar'] = 'File too large, expect <= 20mb';
         }
     }
-    
     //--validate user data
     if (empty($errors)) {
         if ($fileAvatar) {
-        $avatar = "../uploads/" . basename($fileAvatar["name"]);
-        move_uploaded_file($fileAvatar["tmp_name"], $avatar);
+            $avatar = "../uploads/" . basename($fileAvatar["name"]);
+            if (!move_uploaded_file($fileAvatar["tmp_name"], $avatar)) {
+                $errors['fileAvatar'] = "Failed to upload avatar file.";
+            }
+        } else {
+            $avatar = ""; // set avatar to empty string if no file uploaded
         }
-        
-        //--insert into db
-        //connect db
-        $dbhost = 'localhost:3307';
-        $dbuser = 'root';
-        $dbpassword = '';
-        $dbname = 'travel blog';
+        if (empty($errors)) {
+            //--insert into db
+            //connect db
+            $dbhost = 'localhost:3307';
+            $dbuser = 'root';
+            $dbpassword = '';
+            $dbname = 'travel blog';
 
-        $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
-        or die ('Failed to connect to db.');
+            $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
+            or die ('Failed to connect to db.');
 
-        //insert
-        $sql = "INSERT INTO `user` (`UserID`, `FirstName`, `LastName`, `Email`, `PhoneNumber`, `Password`, `City`, `Country`, `Follower`, `Following`, `Avatar`)
-        VALUES (NULL, '$firstName', '$lastName', '$email', '$phoneNumber', '$password', '$city', '$country', NULL, NULL, '$avatar')"; 
+            //insert
+            $sql = "INSERT INTO `user` (`UserID`, `FirstName`, `LastName`, `Email`, `PhoneNumber`, `Password`, `City`, `Country`, `Avatar`)
+            VALUES (NULL, '$firstName', '$lastName', '$email', '$phoneNumber', '$password', '$city', '$country', '$avatar')"; 
 
-        $result = mysqli_query($conn, $sql);
+            $result = mysqli_query($conn, $sql);
 
-        // close connection
-        @mysqli_close($conn);
+            if (!$result) {
+                $errors['db'] = "Failed to create user: " . mysqli_error($conn);
+            }
+
+            // close connection
+            @mysqli_close($conn);
+        }
     }
 }
 ?>
@@ -131,18 +144,21 @@ if ($_POST) { // post data is not empty
     <title>Create User</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
 </head>
-<body class="container">
+<body>
      <?php include("../../inc/_navbar.php"); ?>
-
+     <div class="container">
     <h1>Create a new user</h1>
-    <?php if (isset($result) && $result): ?>
-        <h2 class="text-success">User created successfully! You are redirecting to indexUser.php after 3s...</h2>
+    <?php if ($result): ?>
+        <h2 class="text-success">User created successfully! You are redirecting to index.php after 5s...</h2>
         <script>
             setTimeout(function() {
                 window.location.href = "index.php"; // Chuyển hướng đến indexUser.php
             }, 3000);
         </script>
     <?php else: ?>
+        <?php if (isset($errors['db'])): ?>
+            <div class="alert alert-danger"><?php echo $errors['db']; ?></div>
+        <?php endif; ?>
 
     <form action="" method="POST" enctype="multipart/form-data">
         <div class="form-group">
@@ -217,3 +233,4 @@ if ($_POST) { // post data is not empty
     <?php endif; ?>
 </body>
 </html>
+

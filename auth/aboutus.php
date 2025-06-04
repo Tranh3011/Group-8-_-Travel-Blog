@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Mountain Travel Blog</title>
+    <title>About Us - Let's Travel</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -65,7 +65,7 @@
 <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container">
         <a class="navbar-brand" href="../Home_user/index_homepage.php">
-            <img src="../inc/logo.jpg" alt="Travel Blog Logo" class="img-fluid" style="max-width: 100px; margin-right: 10px;">
+            <img src="../uploads/logo.jpg" alt="Travel Blog Logo" class="img-fluid" style="max-width: 100px; margin-right: 10px;">
             Travel Blog
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,9 +73,6 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="../auth/login.php">Home</a>
-                </li>
                 <li class="nav-item">
                     <a class="nav-link active" href="aboutus.php">About Us</a>
                 </li>
@@ -93,16 +90,16 @@
 <!-- About Us Content -->
 <div class="container">
     <div class="about-section">
-        <h1 class="text-center mb-5">About Mountain Travel Blog</h1>
+        <h1 class="text-center mb-5">About Let's Travel</h1>
         
         <div class="row">
             <div class="col-md-6">
                 <h2>Our Story</h2>
-                <p>Founded in 2024, Mountain Travel Blog was born out of a passion for exploration and a desire to share the world's most breathtaking mountain destinations with fellow travelers. What started as a small blog between friends has grown into a thriving community of adventure seekers.</p>
+                <p>Founded in 2025, Let's Travel was born out of a passion for exploration and a desire to share the world's most breathtaking mountain destinations with fellow travelers. What started as a small blog between friends has grown into a thriving community of adventure seekers.</p>
                 <p>Our team of travel experts scours the globe to bring you the most up-to-date information, hidden gems, and practical tips for your mountain adventures.</p>
             </div>
             <div class="col-md-6">
-                <img src="https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Mountain View" class="img-fluid rounded">
+                <img src="../uploads/Adventure Spots.jpg" alt="About Us Image" class="img-fluid rounded mb-4">
             </div>
         </div>
         
@@ -127,11 +124,11 @@
     <div class="container py-4">
         <div class="row">
             <div class="col-md-6">
-                <h5>Mountain Travel Blog</h5>
+                <h5>Let's Travel</h5>
                 <p>Your trusted guide to mountain adventures around the world.</p>
             </div>
             <div class="col-md-6 text-end">
-                <p>&copy; 2024 Mountain Travel Blog. All rights reserved.</p>
+                <p>&copy; 2025 Let's Travel. All rights reserved.</p>
             </div>
         </div>
     </div>

@@ -17,73 +17,90 @@ if ($_POST) { // post data is not empty
     if (isset($_POST['description'])) {
         $description = $_POST['description'];
     }
-    if (file_exists($_FILES['fileImage']['tmp_name'])) {
-        $fileImage = $_FILES['fileImage']; // assign fileImage = array chứa các nội dung của file img
+    if (isset($_FILES['fileImage']) && $_FILES['fileImage']['error'] == 0) {
+        $fileImage = $_FILES['fileImage'];
     }
 
     // -- clean user data
-    $name = trim($name);                // strip leading & trailing whitespaces 
-    $name = htmlspecialchars($name);    // escape html special characters
-    $name = addslashes($name);          // escape sql special characters
+    $name = trim($name);
+    $name = htmlspecialchars($name);
+    $name = addslashes($name);
 
-    $category = trim($category);                // strip leading & trailing whitespaces 
-    $category = htmlspecialchars($category);    // escape html special characters
-    $category = addslashes($category);          // escape sql special characters
+    $category = trim($category);
+    $category = htmlspecialchars($category);
+    $category = addslashes($category);
 
-    $description = trim($description);                // strip leading & trailing whitespaces 
-    $description = htmlspecialchars($description);    // escape html special characters
-    $description = addslashes($description);          // escape sql special characters
+    $description = trim($description);
+    $description = htmlspecialchars($description);
+    $description = addslashes($description);
 
     // required
     if (empty($name)) {
         $errors['name'] = 'Name is required';
     }
-
     if (empty($category)) {
         $errors['category'] = 'Category is required';
     }
-
     if (empty($description)) {
         $errors['description'] = 'Description is required';
     }
 
     // validation file type
-    if ($fileImage) {
+    if ($fileImage && is_array($fileImage) && isset($fileImage['name']) && $fileImage['name'] !== '') {
         $fileType = strtolower(pathinfo($fileImage['name'], PATHINFO_EXTENSION));
         if (!in_array($fileType, ['jpg', 'png', 'jpeg'])) {
             $errors['fileImage'] = 'Invalid file type, expect png, jpg, jpeg';
         }
-        // validation file size
         if ($fileImage["size"] > 20 * 1024 * 1024) {
             $errors['fileImage'] = 'File too large, expect <= 20mb';
         }
+    } else {
+        $fileImage = null;
     }
-    
+
     //--validate user data
     if (empty($errors)) {
-        if ($fileImage) {
-        $image = "../uploads/" . basename($fileImage["name"]);
-        move_uploaded_file($fileImage["tmp_name"], $image);
+        if ($fileImage && isset($fileImage['tmp_name']) && $fileImage['tmp_name'] !== '') {
+            $uploadDir = realpath(__DIR__ . '/../../uploads');
+            if ($uploadDir === false) {
+                $uploadDir = __DIR__ . '/../../uploads';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+            }
+            $imageName = uniqid('cat_', true) . '_' . basename($fileImage["name"]);
+            $image = "uploads/" . $imageName;
+            move_uploaded_file($fileImage["tmp_name"], $uploadDir . "/" . $imageName);
+        } else {
+            $image = "";
         }
-        
-        //--insert into db
+
         //connect db
         $dbhost = 'localhost:3307';
         $dbuser = 'root';
         $dbpassword = '';
         $dbname = 'travel blog';
 
-        $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
-        or die ('Failed to connect to db.');
-
-        //insert
-        $sql = "INSERT INTO `category` (`CategoryID`, `Name`, `Category`, `Description`, `Created_at`, `Updated_at`, `Image`)
-        VALUES (NULL, '$name', '$category', '$description', NOW(), NOW(), '$image')"; 
-
-        $result = mysqli_query($conn, $sql);
-
-        // close connection
-        @mysqli_close($conn);
+        $conn = mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname);
+        if (!$conn) {
+            $errors['db'] = 'Failed to connect to db: ' . mysqli_connect_error();
+        } else {
+            // insert using prepared statement (CategoryID tự động tăng)
+            $sql = "INSERT INTO `category` (`Name`, `Category`, `Description`, `Created_at`, `Updated_at`, `Image`)
+                    VALUES (?, ?, ?, NOW(), NOW(), ?)";
+            $stmt = mysqli_prepare($conn, $sql);
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "ssss", $name, $category, $description, $image);
+                $result = mysqli_stmt_execute($stmt);
+                if (!$result) {
+                    $errors['db'] = 'Failed to execute query: ' . mysqli_stmt_error($stmt);
+                }
+                mysqli_stmt_close($stmt);
+            } else {
+                $errors['db'] = 'Database error: ' . mysqli_error($conn);
+            }
+            mysqli_close($conn);
+        }
     }
 }
 ?>
@@ -96,9 +113,9 @@ if ($_POST) { // post data is not empty
     <title>Create Category</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
 </head>
-<body class="container">
-    <?php include("../inc/_navbar.php"); ?>
-
+<body>
+    <?php include("../../inc/_navbar.php"); ?>
+<div class="container">
     <h1>Create a new category</h1>
     <?php if (isset($result) && $result): ?>
         <h2 class="text-success">Inserted successfully! You are redirecting to index.php after 3s...</h2>

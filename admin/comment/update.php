@@ -74,8 +74,9 @@ if ($_POST) {
     <title>Update Comment</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
 </head>
-<body class="container">
-    <?php include("../inc/_navbar.php") ?>
+<body>
+    <?php include("../../inc/_navbar.php") ?>
+    <div class="container">
     <h1>Update Comment</h1>
     <?php if (isset($result) && $result): ?>
         <h2 class="text-success">Updated successfully! Redirecting to index.php after 3 seconds...</h2>

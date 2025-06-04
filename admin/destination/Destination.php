@@ -39,7 +39,7 @@ $result = $conn->query($sql);
         } */
         h1 {
             text-align: center;
-            color: #f1c40f;
+            color: #0a1f44;
             margin-bottom: 20px;
             font-size: 32px;
         }
@@ -104,9 +104,9 @@ $result = $conn->query($sql);
     </style>
 </head>
 <body>
-    <div class="container">
         <?php include("../../inc/_navbar.php"); ?>
-        <h1>Travel Destinations</h1>
+          <div class="container">
+        <h1><strong>Travel Destinations</h1>
         <a href="Create.php">Add New Destination</a>
         <?php if ($result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>

@@ -82,8 +82,9 @@ $category = @mysqli_fetch_all($result, MYSQLI_ASSOC);
     <title>Categories</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
 </head>
-<body class="container">
+<body>
     <?php include("../../inc/_navbar.php"); ?>
+    <div class="container">
     <h1>All category</h1>
 
     <a href="createcategory.php" class="btn btn-success btn-sm mt-3 mb-3">

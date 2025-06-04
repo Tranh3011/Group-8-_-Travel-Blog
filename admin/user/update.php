@@ -1,4 +1,3 @@
-create.php
 <?php
 $id = '';
 // -- get data
@@ -26,7 +25,7 @@ $user = mysqli_fetch_assoc($_result);
 
 // redirect if user not exist
 if (!$user) {
-    header('Location: indexUser.php');
+    header('Location: index.php');
 }
 // close connection
 mysqli_close($conn);
@@ -136,9 +135,9 @@ if ($_POST) {
     <title>Update User</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 </head>
-<body class="container">
+<body>
      <?php include("../../inc/_navbar.php"); ?>
-
+     <div class="container">
     <h1>Update User Information</h1>
     
     <?php if (!empty($errors)): ?>

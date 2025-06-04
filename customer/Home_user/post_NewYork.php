@@ -11,6 +11,11 @@ if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 // Post ID for New York Adventures (set a unique ID for this post, e.g., 2)
 $post_id = 2;
 
+// Lấy post_id từ URL nếu có
+if (isset($_GET['post_id'])) {
+    $post_id = intval($_GET['post_id']);
+}
+
 // Handle add comment
 $errors = [];
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_comment']) && isset($_SESSION['user_id'])) {
@@ -19,22 +24,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_comment']) && isse
         $errors['comment'] = "Comment cannot be empty";
     } else {
         $user_id = $_SESSION['user_id'];
-        $stmt = $conn->prepare("INSERT INTO comment (UserID, PostID, Content, Created_at) VALUES (?, ?, ?, NOW())");
-        $stmt->bind_param("iis", $user_id, $post_id, $comment_content);
-        if ($stmt->execute()) {
-            header("Location: post_NewYork.php");
-            exit();
-        } else {
-            $errors['comment'] = "Error adding comment";
+        // Lấy FullName từ user_id
+        $stmt_user = $conn->prepare("SELECT FullName FROM user WHERE UserID = ?");
+        $full_name = '';
+        if ($stmt_user) {
+            $stmt_user->bind_param("i", $user_id);
+            $stmt_user->execute();
+            $stmt_user->bind_result($full_name);
+            $stmt_user->fetch();
+            $stmt_user->close();
         }
-        $stmt->close();
+        if ($full_name) {
+            $stmt = $conn->prepare("INSERT INTO comment (FullName, PostID, Content, Created_at) VALUES (?, ?, ?, NOW())");
+            if ($stmt) {
+                $stmt->bind_param("sis", $full_name, $post_id, $comment_content);
+                if ($stmt->execute()) {
+                    header("Location: post_NewYork.php?post_id=$post_id");
+                    exit();
+                } else {
+                    $errors['comment'] = "Error adding comment";
+                }
+                $stmt->close();
+            } else {
+                $errors['comment'] = "Database error: " . $conn->error;
+            }
+        } else {
+            $errors['comment'] = "User not found";
+        }
     }
 }
 
-// Fetch comments
-$sql_comments = "SELECT c.*, u.FirstName, u.LastName, u.Avatar 
+// Fetch comments (lấy FullName thay vì join user)
+$sql_comments = "SELECT c.*, u.Avatar, c.FullName 
                  FROM comment c
-                 JOIN user u ON c.UserID = u.UserID
+                 LEFT JOIN user u ON c.FullName = u.FullName
                  WHERE c.PostID = $post_id
                  ORDER BY c.Created_at DESC";
 $result_comments = $conn->query($sql_comments);
@@ -221,10 +244,15 @@ if ($result_comments) {
                 <?php foreach ($comments as $comment): ?>
                     <div class="comment">
                         <div class="d-flex">
-                            <img src="<?= htmlspecialchars($comment['Avatar'] ?? '../uploads/default-avatar.jpg') ?>" 
+                            <?php
+                            $avatarPath = !empty($comment['Avatar']) && file_exists("../../uploads/" . $comment['Avatar'])
+                                ? "../../uploads/" . $comment['Avatar']
+                                : "../uploads/default-avatar.jpg";
+                            ?>
+                            <img src="<?= htmlspecialchars($avatarPath) ?>"
                                 alt="User" class="user-avatar me-3">
                             <div>
-                                <h6 class="mb-1"><?= htmlspecialchars($comment['FirstName'] . ' ' . $comment['LastName']) ?></h6>
+                                <h6 class="mb-1"><?= htmlspecialchars($comment['FullName']) ?></h6>
                                 <small class="text-muted">
                                     <?= date('M d, Y H:i', strtotime($comment['Created_at'])) ?>
                                 </small>
@@ -236,44 +264,6 @@ if ($result_comments) {
             <?php endif; ?>
         </div>
     </div>
-
-    <!-- <footer>
-        <div class="container py-5">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5 class="text-white mb-3">Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="footer-link">About Us</a></li>
-                        <li><a href="#" class="footer-link">Our Services</a></li>
-                        <li><a href="#" class="footer-link">Privacy Policy</a></li>
-                        <li><a href="#" class="footer-link">Support</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5 class="text-white mb-3">Travel Tips</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="footer-link">Pack Light</a></li>
-                        <li><a href="#" class="footer-link">Stay Safe</a></li>
-                        <li><a href="#" class="footer-link">Try Local Food</a></li>
-                        <li><a href="#" class="footer-link">Respect Culture</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5 class="text-white mb-3">Contact Us</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="mailto:info@travelblog.com" class="footer-link">Email: info@travelblog.com</a></li>
-                        <li><a href="tel:+123456789" class="footer-link">Phone: +123 456 789</a></li>
-                        <li><a href="#" class="footer-link">Address: 123 Travel St, City, Country</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="row mt-4">
-                <div class="col text-center">
-                    <p class="text-white-50">&copy; 2025 Travel Blog. All Rights Reserved.</p>
-                </div>
-            </div>
-        </div>
-    </footer> -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

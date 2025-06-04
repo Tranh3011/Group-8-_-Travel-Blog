@@ -40,22 +40,28 @@ if ($_POST) { // post data is not empty
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </head>
-<body class="container">
-    <?php include("../inc/_navbar.php") ?>
-    <h1>Delete a selected comment: id= <?php echo $id; ?></h1>
-    <?php if (isset($result) && $result): ?>
-        <h2 class="text-success">Deleted successfully! You are redirecting to index.php after 3s...</h2>
-        <script>
-            setTimeout(function() {
-                window.location.href = "index.php";
-            }, 3000);
-        </script>
-    <?php else: ?>
-        <form action="" method="post" enctype="multipart/form-data">
-            <h2 class="text-danger">Are you sure?</h2>
-            <a href="index.php">Cancel</a>
-            <button name="action" value="confirm" type="submit" class="btn btn-danger">Confirm</button>
-        </form>
-    <?php endif; ?>
+<body>
+    <?php include("../../inc/_navbar.php") ?>
+    <div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+        <h1 class="mb-4 text-center">Delete a selected comment: id= <?php echo $id; ?></h1>
+        <?php if (isset($result) && $result): ?>
+            <h2 class="text-success text-center">Deleted successfully! You are redirecting to index.php after 3s...</h2>
+            <script>
+                setTimeout(function() {
+                    window.location.href = "index.php";
+                }, 3000);
+            </script>
+        <?php else: ?>
+            <div class="card shadow p-4" style="max-width: 400px;">
+                <form action="" method="post" enctype="multipart/form-data" class="text-center">
+                    <h2 class="text-danger mb-4">Are you sure?</h2>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="index.php" class="btn btn-secondary mr-2">Cancel</a>
+                        <button name="action" value="confirm" type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </form>
+            </div>
+        <?php endif; ?>
+    </div>
 </body>
 </html>

@@ -1,4 +1,3 @@
-create.php
 <?php
 // Get car ID from URL parameter
 $id = '';
@@ -12,36 +11,28 @@ if (empty($id)) {
     exit;
 }
 
-// Connect to the database
-$dbhost = 'localhost:3307';
-$dbuser = 'root';
-$dbpassword = '';
-$dbname = 'travel blog';
+$deleteSuccess = null;
 
-$conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
-    or die('Failed to connect to db.');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm']) && $_POST['confirm'] === 'yes') {
+    // Connect to the database
+    $dbhost = 'localhost:3307';
+    $dbuser = 'root';
+    $dbpassword = '';
+    $dbname = 'travel blog';
 
-// Delete the car record with the provided ID
-$sql = "DELETE FROM user WHERE UserID = '$id'";
-$result = mysqli_query($conn, $sql);
+    $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
+        or die('Failed to connect to db.');
 
-// Close the database connection
-mysqli_close($conn);
+    // Delete the user record with the provided ID
+    $sql = "DELETE FROM user WHERE UserID = '$id'";
+    $result = mysqli_query($conn, $sql);
 
-// Redirect with success message if the delete was successful
-if ($result) {
-    echo "<h2 class='text-success'>Deleted successfully! You are redirecting to indexUser.php after 3 seconds...</h2>";
-    echo "<script>
-            setTimeout(function() {
-                window.location.href = 'indexUser.php';
-            }, 3000);
-          </script>";
-    exit;
-} else {
-    echo "<h2 class='text-danger'>An error occurred while deleting the user.</h2>";
+    // Close the database connection
+    mysqli_close($conn);
+
+    $deleteSuccess = $result;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,23 +42,33 @@ if ($result) {
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 </head>
-<body class="container">
+<body>
      <?php include("../../inc/_navbar.php"); ?>
-
-    <h1>Delete Selected Car</h1>
-
-    <?php if (isset($result) && $result): ?>
-        <h2 class="text-success">
-            Deleted successfully! You are redirecting to indexUser.php after 3 seconds...
-        </h2>
-        <script>
-            setTimeout(function() {
-                window.location.href = "index.php";
-            }, 3000);
-        </script>
-    <?php else: ?>
-        <h2 class="text-danger">Failed to delete user. Please try again.</h2>
-    <?php endif; ?>
-
+     <div class="container" style="max-width: 500px; margin-top: 60px;">
+        <h1 class="mb-4 text-center">Delete User</h1>
+        <?php if ($deleteSuccess === true): ?>
+            <div class="alert alert-success text-center">
+                Deleted successfully! Redirecting to index.php after 5 seconds...
+            </div>
+            <script>
+                setTimeout(function() {
+                    window.location.href = "index.php";
+                }, 3000);
+            </script>
+        <?php elseif ($deleteSuccess === false): ?>
+            <div class="alert alert-danger text-center">
+                Failed to delete user. Please try again.
+            </div>
+        <?php else: ?>
+            <div class="alert alert-warning text-center">
+                Are you sure you want to delete this user?
+            </div>
+            <form method="post" class="d-flex justify-content-center gap-3">
+                <input type="hidden" name="confirm" value="yes">
+                <button type="submit" class="btn btn-danger">Delete</button>
+                <a href="index.php" class="btn btn-secondary">Cancel</a>
+            </form>
+        <?php endif; ?>
+    </div>
 </body>
 </html>

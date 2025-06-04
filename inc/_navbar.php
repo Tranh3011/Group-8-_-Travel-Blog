@@ -21,7 +21,7 @@ $user_type = $_SESSION['user_type'] ?? null;
             align-items: center;
             justify-content: space-between;
             background: linear-gradient(90deg, #0a1f44, #142850); 
-            padding: 10px 20px;
+            padding: 10px 50px;
             color: white;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
         }
@@ -84,14 +84,17 @@ $user_type = $_SESSION['user_type'] ?? null;
                 <a href="/PHP/TravelBlog/admin/destination/Destination.php">Manage Destination</a>
                 <a href="/PHP/TravelBlog/admin/category/indexcategory.php">Manage Category</a>
                 <a href="/PHP/TravelBlog/admin/comment/index.php">Manage Comment</a>
+                <a href="/PHP/TravelBlog/admin/invoice/index.php">Manage Invoice</a>
+                <a href="/PHP/TravelBlog/admin/booking/index.php">Manage Booking</a>
                 <a href="/PHP/TravelBlog/auth/logout.php">Logout</a>
             <?php elseif ($user_type === 'user'): ?>
                 <a href="/PHP/TravelBlog/customer/Home_user/index_homepage old.php">Home</a>
                 <a href="/PHP/TravelBlog/customer/Home_user/profile.php">My Profile</a>
-                <a href="/PHP/TravelBlog/customer/post/index.php">Post</a>
+                <a href="/PHP/TravelBlog/customer/Home_user/post_detail.php">Post</a>
                 <a href="/PHP/TravelBlog/customer/Destination/index.php">Booking Tour</a>
                 <a href="/PHP/TravelBlog/auth/logout.php">Logout</a>
             <?php else: ?>
+                <a href="/PHP/TravelBlog/customer/Home_user/index_homepage old.php">Home</a>
                 <a href="/PHP/TravelBlog/auth/login.php">Login</a>
                 <a href="/PHP/TravelBlog/auth/aboutus.php">About Us</a>
                 <a href="/PHP/TravelBlog/auth/register.php">Sign Up</a>

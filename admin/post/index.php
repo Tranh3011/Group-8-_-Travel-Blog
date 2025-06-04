@@ -64,8 +64,9 @@ $posts = @mysqli_fetch_all($result, MYSQLI_ASSOC);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body class="container">
+<body>
     <?php include("../../inc/_navbar.php"); ?>
+    <div class="container">
 
     <h1>All Posts</h1>
 

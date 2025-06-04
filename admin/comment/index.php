@@ -96,8 +96,9 @@ mysqli_close($conn);
     <!-- bootstrap js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 </head>
-<body class="container">
+<body>
     <?php include('../../inc/_navbar.php'); ?>
+    <div class="container">
     <div class="container mt-5">
         
         <br/><br/>

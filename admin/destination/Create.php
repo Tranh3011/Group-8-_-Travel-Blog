@@ -4,7 +4,7 @@
 $servername = "localhost:3307";
 $username = "root";
 $password = "";
-$database = "travel_blog";
+$database = "travel blog";
 
 $conn = new mysqli($servername, $username, $password, $database);
 
@@ -60,71 +60,98 @@ $conn->close();
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #2E4053;
-            color: #F7F9F9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            background-color: #f4f6f9;
             margin: 0;
+            padding: 0;
         }
         .container {
-            background-color: #F1C40F;
-            color: #2E4053;
-            padding: 20px;
-            border-radius: 10px;
-            width: 400px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            margin: 48px auto 0 auto;
+            padding: 0 16px;
         }
         h1 {
             text-align: center;
-            color: #2E4053;
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
+            color: #2d3e50;
+            margin-bottom: 32px;
+            font-size: 2.2rem;
             font-weight: bold;
+            letter-spacing: 0.5px;
         }
-        input, textarea, button {
+        form {
             width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            margin-bottom: 10px;
-            border: 1px solid #2E4053;
-            border-radius: 5px;
-            font-size: 14px;
         }
-        button {
-            background-color: #1ABC9C;
-            color: #F7F9F9;
+        .input-group {
+            margin-bottom: 22px;
+            width: 100%;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: bold;
-            cursor: pointer;
-            border: none;
-            transition: background-color 0.3s;
+            color: #34495e;
+            font-size: 1.08rem;
         }
-        button:hover {
-            background-color: #16A085;
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #dfe4ea;
+            border-radius: 6px;
+            font-size: 1.08rem;
+            background: #f9fafb;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        .input-group input:focus,
+        .input-group textarea:focus {
+            border-color: #2980b9;
+            outline: none;
+        }
+        .button-group {
+            text-align: center;
+            margin-top: 28px;
+        }
+        .button-group button {
+            background-color: #2980b9;
+            color: #fff;
+            font-weight: bold;
+            padding: 13px 48px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.08rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .button-group button:hover {
+            background-color: #1a5d8f;
         }
     </style>
 </head>
 <body>
+    <?php include("../../inc/_navbar.php"); ?>
     <div class="container">
         <h1>Add New Destination</h1>
         <form action="" method="POST" enctype="multipart/form-data">
-            <label for="Name">Destination Name:</label>
-            <input type="text" id="Name" name="Name" required>
-
-            <label for="Description">Describe:</label>
-            <textarea id="Description" name="Description" rows="4" required></textarea>
-
-            <label for="Location">Location:</label>
-            <input type="text" id="Location" name="Location" required>
-
-            <label for="image">Image:</label>
-            <input type="file" id="image" name="image" accept="image/*">
-
-            <button type="submit">Add</button>
+            <div class="input-group">
+                <label for="Name">Destination Name:</label>
+                <input type="text" id="Name" name="Name" required>
+            </div>
+            <div class="input-group">
+                <label for="Description">Describe:</label>
+                <textarea id="Description" name="Description" rows="4" required></textarea>
+            </div>
+            <div class="input-group">
+                <label for="Location">Location:</label>
+                <input type="text" id="Location" name="Location" required>
+            </div>
+            <div class="input-group">
+                <label for="image">Image:</label>
+                <input type="file" id="image" name="image" accept="image/*">
+            </div>
+            <div class="button-group">
+                <button type="submit">Add</button>
+            </div>
         </form>
     </div>
 </body>

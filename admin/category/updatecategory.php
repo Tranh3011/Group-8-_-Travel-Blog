@@ -11,7 +11,7 @@ if (!$id) {
 }
 
 //connect db
-$dbhost = 'localhost';
+$dbhost = 'localhost:3307';
 $dbuser = 'root';
 $dbpassword = '';
 $dbname = 'travel blog';
@@ -37,7 +37,7 @@ $errors = [];
 $name = $categoryData['Name'];
 $description = $categoryData['Description'];
 $image = $categoryData['Image'];
-$category = $categoryData['Category'];
+$category_id = $categoryData['CategoryID'];
 
 $fileImage = '';
 
@@ -50,25 +50,25 @@ if ($_POST) {
     if (isset($_POST['description'])) {
         $description = $_POST['description'];
     }
-    if (isset($_POST['category'])) {
-        $category = $_POST['category'];
+    if (isset($_POST['category_id'])) {
+        $category_id = $_POST['category_id'];
     }
     if (file_exists($_FILES['fileImage']['tmp_name'])) {
-        $fileImage = $_FILES['fileImage']; //assign fileImage = array chứa các nội dung của file imgimg
+        $fileImage = $_FILES['fileImage'];
     }
     
     // -- clean user data
-    $name = trim($name);                // strip leading & trailing whitespaces 
-    $name = htmlspecialchars($name);    // escape html special characters
-    $name = addslashes($name);          // escape sql special characters
+    $name = trim($name);
+    $name = htmlspecialchars($name);
+    $name = addslashes($name);
 
-    $description = trim($description);                // strip leading & trailing whitespaces 
-    $description = htmlspecialchars($description);    // escape html special characters
-    $description = addslashes($description);          // escape sql special characters
+    $description = trim($description);
+    $description = htmlspecialchars($description);
+    $description = addslashes($description);
 
-    $category = trim($category);
-    $category = htmlspecialchars($category);
-    $category = addslashes($category);
+    $category_id = trim($category_id);
+    $category_id = htmlspecialchars($category_id);
+    $category_id = addslashes($category_id);
 
     // required
     if (empty($name)) {
@@ -77,8 +77,8 @@ if ($_POST) {
     if (empty($description)) {
         $errors['description'] = 'Description is required';
     } 
-    if (empty($category)) {
-        $errors['category'] = 'Category is required';
+    if (empty($category_id)) {
+        $errors['category_id'] = 'CategoryID is required';
     }
     //validation file type
     if ($fileImage) {
@@ -116,7 +116,7 @@ if ($_POST) {
         //insert
         $sql = "UPDATE `category`
                 SET    `Name` = '$name',
-                       `Category` = '$category',
+                       `CategoryID` = '$category_id',
                        `Description` = '$description', 
                        `Image` = '$image'
                 WHERE `category`.`CategoryID` = '$id'";
@@ -140,9 +140,9 @@ if ($_POST) {
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     </head>
-    <body class="container">
-        <?php include("../inc/_navbar.php"); ?>
-
+    <body>
+        <?php include("../../inc/_navbar.php"); ?>
+<div class="container">
     <h1>Update a selected category</h1>
     <?php if (isset($result) && $result): ?>
         <h2 class="text-success">Updated successfully! Your are redirecting to index.php after 3s...</h2>
@@ -178,11 +178,11 @@ if ($_POST) {
         </div>
 
         <div class="form-group">
-            <label for="category" class="form-label">Category</label>
-            <input type="text" id="category" name="category" class="form-control" 
-                value="<?php echo $category; ?>">
-            <?php if (isset($errors['category'])): ?>
-                <span class="text-danger"><?php echo $errors['category']; ?></span>
+            <label for="category_id" class="form-label">CategoryID</label>
+            <input type="text" id="category_id" name="category_id" class="form-control" 
+                value="<?php echo $category_id; ?>">
+            <?php if (isset($errors['category_id'])): ?>
+                <span class="text-danger"><?php echo $errors['category_id']; ?></span>
             <?php endif; ?>
         </div>
 

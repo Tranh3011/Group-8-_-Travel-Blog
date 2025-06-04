@@ -138,11 +138,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_post'])) {
     $title = trim($_POST['post_title'] ?? '');
     $content = trim($_POST['post_content'] ?? '');
     $destination_id = intval($_POST['destination_id'] ?? 0);
+
+    // Xử lý ảnh upload
+    $post_image = '';
+    if (isset($_FILES['post_image']) && $_FILES['post_image']['error'] == 0) {
+        $imgFile = $_FILES['post_image'];
+        $fileType = strtolower(pathinfo($imgFile['name'], PATHINFO_EXTENSION));
+        if (in_array($fileType, ['jpg', 'jpeg', 'png'])) {
+            $uploadDir = "../uploads/";
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $imgName = uniqid('post_', true) . '_' . basename($imgFile['name']);
+            $post_image = $uploadDir . $imgName;
+            move_uploaded_file($imgFile['tmp_name'], $post_image);
+        }
+    }
+
     if ($title && $content && $destination_id) {
         $title = addslashes(htmlspecialchars($title));
         $content = addslashes(htmlspecialchars($content));
         $created_at = date('Y-m-d H:i:s');
-        $sql_insert_post = "INSERT INTO posts (UserID, Title, Content, DestinationID, Created_at) VALUES ($id, '$title', '$content', $destination_id, '$created_at')";
+        $img_sql = $post_image ? "', '$post_image'" : "', NULL";
+        $sql_insert_post = "INSERT INTO posts (UserID, Title, Content, DestinationID, Created_at, Image) VALUES ($id, '$title', '$content', $destination_id, '$created_at', " . ($post_image ? "'$post_image'" : "NULL") . ")";
         if (mysqli_query($conn, $sql_insert_post)) {
             $post_create_msg = '<div class="alert alert-success">Post created successfully!</div>';
         } else {
@@ -150,6 +168,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_post'])) {
         }
     } else {
         $post_create_msg = '<div class="alert alert-danger">Please fill all fields.</div>';
+    }
+}
+
+// Handle update post
+$post_update_msg = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_post'])) {
+    $edit_post_id = intval($_POST['edit_post_id'] ?? 0);
+    $edit_title = trim($_POST['edit_post_title'] ?? '');
+    $edit_content = trim($_POST['edit_post_content'] ?? '');
+    $edit_destination_id = intval($_POST['edit_destination_id'] ?? 0);
+
+    // Xử lý ảnh upload khi sửa
+    $edit_post_image = '';
+    if (isset($_FILES['edit_post_image']) && $_FILES['edit_post_image']['error'] == 0) {
+        $imgFile = $_FILES['edit_post_image'];
+        $fileType = strtolower(pathinfo($imgFile['name'], PATHINFO_EXTENSION));
+        if (in_array($fileType, ['jpg', 'jpeg', 'png'])) {
+            $uploadDir = "../uploads/";
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $imgName = uniqid('post_', true) . '_' . basename($imgFile['name']);
+            $edit_post_image = $uploadDir . $imgName;
+            move_uploaded_file($imgFile['tmp_name'], $edit_post_image);
+        }
+    }
+
+    if ($edit_post_id && $edit_title && $edit_content && $edit_destination_id) {
+        $edit_title = addslashes(htmlspecialchars($edit_title));
+        $edit_content = addslashes(htmlspecialchars($edit_content));
+        $update_img_sql = $edit_post_image ? ", Image='$edit_post_image'" : "";
+        $sql_update_post = "UPDATE posts SET Title='$edit_title', Content='$edit_content', DestinationID=$edit_destination_id $update_img_sql WHERE PostID=$edit_post_id AND UserID=$id";
+        if (mysqli_query($conn, $sql_update_post)) {
+            $post_update_msg = '<div class="alert alert-success">Post updated successfully!</div>';
+        } else {
+            $post_update_msg = '<div class="alert alert-danger">Failed to update post.</div>';
+        }
+    } else {
+        $post_update_msg = '<div class="alert alert-danger">Please fill all fields.</div>';
     }
 }
 
@@ -169,107 +226,6 @@ if ($res_dest) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <!-- <style>
-        body {
-            padding-top: 80px;
-            background-color: #F1FEFC;
-        }
-        .main-content-center {
-            max-width: 900px;
-            margin: 0 auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 32px 24px 24px 24px;
-        }
-        .nav-tabs .nav-link {
-            color: #123458;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .nav-tabs .nav-link.active {
-            background-color: #123458;
-            color: #fff;
-            border-color: #123458 #123458 #fff;
-        }
-        .tab-pane {
-            padding-top: 24px;
-        }
-        /* Navbar styles (match homepage) */
-        .navbar {
-            background-color: #123458 !important;
-            border-bottom: 3px solid #D4C9BE !important;
-            position: fixed !important;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-        }
-        .navbar-logo img {
-            height: 50px !important;
-            max-width: 50px !important;
-            margin-right: 10px;
-        }
-        .navbar-logo h1 {
-            font-size: 22px !important;
-            font-weight: bold;
-            color: #F1FEFC;
-            margin: 0;
-            letter-spacing: 1px;
-        }
-        .navbar-links a,
-        .navbar-links .dropdown-toggle {
-            color: #F1FEFC !important;
-            font-weight: 600;
-            text-transform: uppercase;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: background-color 0.3s, color 0.3s;
-            text-decoration: none !important;
-        }
-        .navbar-links a:hover,
-        .navbar-links .dropdown-toggle:hover {
-            background-color: #D4C9BE !important;
-            color: #030303 !important;
-            text-decoration: none !important;
-        }
-        .dropdown-menu {
-            background-color: #123458 !important;
-            border: none;
-            min-width: 200px;
-            border-radius: 5px;
-        }
-        .dropdown-menu .dropdown-item {
-            color: #F1FEFC !important;
-            padding: 10px 20px;
-            font-size: 1rem;
-            text-transform: uppercase;
-            text-decoration: none !important;
-        }
-        .dropdown-menu .dropdown-item:hover {
-            background-color: #D4C9BE !important;
-            color: #030303 !important;
-            text-decoration: none !important;
-        }
-        @media (max-width: 768px) {
-            .main-content-center {
-                padding: 16px 4px 16px 4px;
-            }
-            .navbar-logo img {
-                height: 40px !important;
-                max-width: 40px !important;
-            }
-            .navbar-logo h1 {
-                font-size: 18px !important;
-            }
-            .navbar-links a,
-            .navbar-links .dropdown-toggle {
-                font-size: 15px;
-                padding: 8px 10px;
-            }
-        }
-    </style> -->
 </head>
 <body>
     <?php include("../../inc/_navbar.php"); ?>
@@ -344,7 +300,8 @@ if ($res_dest) {
             <div class="tab-pane fade" id="post-pane" role="tabpanel">
                 <h2 class="text-center">Create Post</h2>
                 <?php if ($post_create_msg) echo $post_create_msg; ?>
-                <form action="" method="POST" class="mb-4">
+                <?php if ($post_update_msg) echo $post_update_msg; ?>
+                <form action="" method="POST" class="mb-4" enctype="multipart/form-data">
                     <input type="hidden" name="create_post" value="1">
                     <div class="mb-3">
                         <label for="post_title" class="form-label">Title</label>
@@ -363,6 +320,10 @@ if ($res_dest) {
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="post_image" class="form-label">Image</label>
+                        <input type="file" name="post_image" id="post_image" class="form-control" accept="image/*">
+                    </div>
                     <button type="submit" class="btn btn-success">Create Post</button>
                 </form>
                 <hr>
@@ -372,9 +333,11 @@ if ($res_dest) {
                         <div class="card mb-3">
                             <div class="row g-0">
                                 <?php
-                                // Lấy ảnh từ bảng destination nếu có DestinationID
+                                // Lấy ảnh từ cột Image của post nếu có
                                 $post_image = '';
-                                if (!empty($post['DestinationID'])) {
+                                if (!empty($post['Image'])) {
+                                    $post_image = $post['Image'];
+                                } elseif (!empty($post['DestinationID'])) {
                                     $dest_id = intval($post['DestinationID']);
                                     $sql_img = "SELECT Image FROM destination WHERE DestinationID = $dest_id LIMIT 1";
                                     $result_img = mysqli_query($conn, $sql_img);
@@ -394,9 +357,45 @@ if ($res_dest) {
                                 </div>
                                 <div class="col-md-8">
                                     <div class="card-body">
-                                        <h5 class="card-title"><?php echo htmlspecialchars($post['Title']); ?></h5>
-                                        <div class="card-text"><?php echo nl2br(htmlspecialchars($post['Content'])); ?></div>
-                                        <small class="text-muted">Created at: <?php echo htmlspecialchars($post['Created_at']); ?></small>
+                                        <?php if (isset($_GET['edit_post']) && $_GET['edit_post'] == $post['PostID']): ?>
+                                            <!-- Edit Post Form -->
+                                            <form action="" method="POST" enctype="multipart/form-data">
+                                                <input type="hidden" name="update_post" value="1">
+                                                <input type="hidden" name="edit_post_id" value="<?php echo $post['PostID']; ?>">
+                                                <div class="mb-2">
+                                                    <label for="edit_post_title_<?php echo $post['PostID']; ?>" class="form-label">Title</label>
+                                                    <input type="text" name="edit_post_title" id="edit_post_title_<?php echo $post['PostID']; ?>" class="form-control" value="<?php echo htmlspecialchars($post['Title']); ?>" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label for="edit_post_content_<?php echo $post['PostID']; ?>" class="form-label">Content</label>
+                                                    <textarea name="edit_post_content" id="edit_post_content_<?php echo $post['PostID']; ?>" class="form-control" rows="3" required><?php echo htmlspecialchars($post['Content']); ?></textarea>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label for="edit_destination_id_<?php echo $post['PostID']; ?>" class="form-label">Destination</label>
+                                                    <select name="edit_destination_id" id="edit_destination_id_<?php echo $post['PostID']; ?>" class="form-control" required>
+                                                        <option value="">Select destination</option>
+                                                        <?php foreach ($destinations as $dest): ?>
+                                                            <option value="<?php echo $dest['DestinationID']; ?>" <?php if ($post['DestinationID'] == $dest['DestinationID']) echo 'selected'; ?>>
+                                                                <?php echo htmlspecialchars($dest['Name']); ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label for="edit_post_image_<?php echo $post['PostID']; ?>" class="form-label">Image (optional)</label>
+                                                    <input type="file" name="edit_post_image" id="edit_post_image_<?php echo $post['PostID']; ?>" class="form-control" accept="image/*">
+                                                </div>
+                                                <button type="submit" class="btn btn-success btn-sm">Save</button>
+                                                <a href="profile.php#post-pane" class="btn btn-secondary btn-sm">Cancel</a>
+                                            </form>
+                                        <?php else: ?>
+                                            <h5 class="card-title"><?php echo htmlspecialchars($post['Title']); ?></h5>
+                                            <div class="card-text"><?php echo nl2br(htmlspecialchars($post['Content'])); ?></div>
+                                            <small class="text-muted">Created at: <?php echo htmlspecialchars($post['Created_at']); ?></small>
+                                            <div class="mt-2">
+                                                <a href="profile.php?edit_post=<?php echo $post['PostID']; ?>#post-pane" class="btn btn-warning btn-sm">Edit</a>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="card-footer">
                                         <!-- Display comments for this post -->

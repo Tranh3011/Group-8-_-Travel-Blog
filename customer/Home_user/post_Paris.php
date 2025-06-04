@@ -13,22 +13,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_comment']) && isse
         $errors['comment'] = "Comment cannot be empty";
     } else {
         $user_id = $_SESSION['user_id'];
-        $stmt = $conn->prepare("INSERT INTO comment (UserID, PostID, Content, Created_at) VALUES (?, ?, ?, NOW())");
-        $stmt->bind_param("iis", $user_id, $post_id, $comment_content);
-        if ($stmt->execute()) {
-            header("Location: post_Paris.php");
-            exit();
-        } else {
-            $errors['comment'] = "Error adding comment";
+        // Lấy FullName từ user_id
+        $stmt_user = $conn->prepare("SELECT FullName FROM user WHERE UserID = ?");
+        $full_name = '';
+        if ($stmt_user) {
+            $stmt_user->bind_param("i", $user_id);
+            $stmt_user->execute();
+            $stmt_user->bind_result($full_name);
+            $stmt_user->fetch();
+            $stmt_user->close();
         }
-        $stmt->close();
+        if ($full_name) {
+            $stmt = $conn->prepare("INSERT INTO comment (FullName, PostID, Content, Created_at) VALUES (?, ?, ?, NOW())");
+            if ($stmt) {
+                $stmt->bind_param("sis", $full_name, $post_id, $comment_content);
+                if ($stmt->execute()) {
+                    header("Location: post_Paris.php?post_id=$post_id");
+                    exit();
+                } else {
+                    $errors['comment'] = "Error adding comment";
+                }
+                $stmt->close();
+            } else {
+                $errors['comment'] = "Database error: " . $conn->error;
+            }
+        } else {
+            $errors['comment'] = "User not found";
+        }
     }
 }
 
-// Fetch comments
-$sql_comments = "SELECT c.*, u.FirstName, u.LastName, u.Avatar 
+// Fetch comments (lấy FullName và Avatar nếu có)
+$sql_comments = "SELECT c.*, u.Avatar, c.FullName 
                  FROM comment c
-                 JOIN user u ON c.UserID = u.UserID
+                 LEFT JOIN user u ON c.FullName = u.FullName
                  WHERE c.PostID = $post_id
                  ORDER BY c.Created_at DESC";
 $result_comments = $conn->query($sql_comments);
@@ -233,10 +251,17 @@ if ($result_comments) {
                 <?php foreach ($comments as $comment): ?>
                     <div class="comment">
                         <div class="d-flex">
-                            <img src="<?= htmlspecialchars($comment['Avatar'] ?? '../uploads/default-avatar.jpg') ?>" 
+                            <?php
+                            $avatarFile = !empty($comment['Avatar']) ? basename($comment['Avatar']) : '';
+                            $avatarPath = "../../uploads/" . $avatarFile;
+                            if (!$avatarFile || !file_exists($_SERVER['DOCUMENT_ROOT'] . "/PHP/TravelBlog/uploads/" . $avatarFile)) {
+                                $avatarPath = "../../uploads/default-avatar.jpg";
+                            }
+                            ?>
+                            <img src="<?= htmlspecialchars($avatarPath) ?>"
                                 alt="User" class="user-avatar me-3">
                             <div>
-                                <h6 class="mb-1"><?= htmlspecialchars($comment['FirstName'] . ' ' . $comment['LastName']) ?></h6>
+                                <h6 class="mb-1"><?= htmlspecialchars($comment['FullName']) ?></h6>
                                 <small class="text-muted">
                                     <?= date('M d, Y H:i', strtotime($comment['Created_at'])) ?>
                                 </small>
