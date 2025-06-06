@@ -6,33 +6,39 @@
 $dbhost = 'localhost:3307';
 $dbuser = 'root';
 $dbpassword = '';
-$dbname = 'travel blog';
+$dbname = 'travel_blog';
 
 $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
     or die ('Failed to connect to db.');
 
 // select
-$sql = "SELECT * FROM `category` WHERE 1=1";
+$sql = "SELECT t.id, t.title, t.description, t.images, t.created_at, t.updated_at,
+        c.Name as category, d.Name as destination
+        FROM `tour_posts` as t
+        join `category` as c ON t.category_id = c.CategoryID
+        join `destination` as d ON t.destination = d.DestinationID
+        WHERE 1=1
+        ";
 
 // filter by Name
-if (isset($_GET['Name']) && !empty($_GET['Name'])) {
-    $name = mysqli_real_escape_string($conn, $_GET['Name']);
-    $sql .= " AND Name LIKE '%$name%'";
-}
+// if (isset($_GET['Category']) && !empty($_GET['Name'])) {
+//     $name = mysqli_real_escape_string($conn, $_GET['Name']);
+//     $sql .= " AND Name LIKE '%$name%'";
+// }
 
-if (isset($_GET['category']) && !empty($_GET['category'])) {
-    $category = mysqli_real_escape_string($conn, $_GET['category']);
-    $sql .= " AND Category LIKE '%$category%'";
-}
+// if (isset($_GET['category']) && !empty($_GET['category'])) {
+//     $tours = mysqli_real_escape_string($conn, $_GET['category']);
+//     $sql .= " AND Category LIKE '%$tours%'";
+// }
 
 // filter by Created_at range
-if (isset($_GET['created_at_start']) && !empty($_GET['created_at_start'])) {
-    $created_at_start = mysqli_real_escape_string($conn, $_GET['created_at_start']);
-    $sql .= " AND Created_at >= '$created_at_start'";
+if (isset($_GET['created_at']) && !empty($_GET['created_at'])) {
+    $created_at = mysqli_real_escape_string($conn, $_GET['created_at']);
+    $sql .= " AND created_at >= '$created_at'";
 }
-if (isset($_GET['created_at_end']) && !empty($_GET['created_at_end'])) {
-    $created_at_end = mysqli_real_escape_string($conn, $_GET['created_at_end']);
-    $sql .= " AND Created_at <= '$created_at_end'";
+if (isset($_GET['updated_at']) && !empty($_GET['updated_at'])) {
+    $updated_at = mysqli_real_escape_string($conn, $_GET['updated_at']);
+    $sql .= " AND created_at <= '$updated_at'";
 }
 
 // pagination
@@ -55,16 +61,16 @@ $offset = ($page - 1) * $limit;
 $sql .= " LIMIT $limit OFFSET $offset";
 
 $result = @mysqli_query($conn, $sql);
-$category = @mysqli_fetch_all($result, MYSQLI_ASSOC);
+$tours = @mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 // // Lấy dữ liệu từ bảng category_destination
-// $category_destinations = [];
+// $tours_destinations = [];
 // $destination_sql = "SELECT * FROM `category_destination`";
 // $destination_result = @mysqli_query($conn, $destination_sql);
 
 // if ($destination_result) {
 //     while ($row = mysqli_fetch_assoc($destination_result)) {
-//         $category_destinations[$row['CategoryID']][] = $row['DestinationID'];
+//         $tours_destinations[$row['CategoryID']][] = $row['DestinationID'];
 //     }
 // }
 
@@ -79,60 +85,61 @@ $category = @mysqli_fetch_all($result, MYSQLI_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Categories</title>
+    <title>Tours</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
 </head>
-<body>
+<body class="container">
     <?php include("../../inc/_navbar.php"); ?>
-    <div class="container">
-    <h1>All category</h1>
+    <h1>All Tour</h1>
 
-    <a href="createcategory.php" class="btn btn-success btn-sm mt-3 mb-3">
-        Create a new category
+    <a href="create.php" class="btn btn-success btn-sm mt-3 mb-3">
+        Create a new tour
     </a>
 
     <!-- filter -->
     <form action="">
-        <label for="Name">Name: </label>
-        <input type="text" name="Name" id="Name" value="<?php echo isset($_GET['Name']) ? htmlspecialchars($_GET['Name']) : ''; ?>">
+        <label for="Title">Title: </label>
+        <input type="text" name="Title" id="Title" value="<?php echo isset($_GET['Title']) ? htmlspecialchars($_GET['Title']) : ''; ?>">
 
-        <label for="created_at_start">Created After: </label>
-        <input type="date" name="created_at_start" id="created_at_start" value="<?php echo isset($_GET['created_at_start']) ? htmlspecialchars($_GET['created_at_start']) : ''; ?>">
+        <label for="created_at">Created After: </label>
+        <input type="date" name="created_at" id="created_at" value="<?php echo isset($_GET['created_at']) ? htmlspecialchars($_GET['created_at']) : ''; ?>">
 
-        <label for="created_at_end">Created Before: </label>
-        <input type="date" name="created_at_end" id="created_at_end" value="<?php echo isset($_GET['created_at_end']) ? htmlspecialchars($_GET['created_at_end']) : ''; ?>">
+        <label for="updated_at">Created Before: </label>
+        <input type="date" name="updated_at" id="updated_at" value="<?php echo isset($_GET['updated_at']) ? htmlspecialchars($_GET['updated_at']) : ''; ?>">
 
         <button type="submit">Filter</button>
     </form>
 
-    <?php if (empty($category)): ?>
+    <?php if (empty($tours)): ?>
         <p>No data.</p>
     <?php else: ?>
         <table class="table table-bordered table-striped table-hover">
             <tr>
-                <!-- <th>Image</th> -->
+                <th>Image</th>
                 <th>Name</th>
                 <th>Category</th>
+                <th>Destination</th>
                 <th>Description</th>
                 <th>Created_at</th>
                 <th>Updated_at</th>
                 <th>Actions</th>
             </tr>
 
-            <?php foreach ($category as $category): ?>
+            <?php foreach ($tours as $tours): ?>
             <tr>
-            <!-- <td>
-                <img src="<?php echo $category['Image']; ?>" width="300">
+            <td>
+                <img src="<?php echo $tours['images']; ?>" width="300">
                 
-            </td> -->
-                <td><?php echo $category['Name']; ?></td>
-                <td><?php echo $category['CategoryID']; ?></td>
-                <td><?php echo $category['Description']; ?></td>
-                <td><?php echo $category['Created_at']; ?></td>
-                <td><?php echo $category['Updated_at']; ?></td>
+            </td>
+                <td><?php echo $tours['title']; ?></td>
+                <td><?php echo $tours['category']; ?></td>
+                <td><?php echo $tours['destination']; ?></td>
+                <td><?php echo $tours['description']; ?></td>
+                <td><?php echo $tours['created_at']; ?></td>
+                <td><?php echo $tours['updated_at']; ?></td>
                 <td>
-                    <a href="updatecategory.php?id=<?php echo $category['CategoryID'] ?>">Update</a> |
-                    <a href="deletecategory.php?id=<?php echo $category['CategoryID'] ?>">Delete</a>
+                    <a href="update.php?id=<?php echo $tours['id'] ?>">Update</a> |
+                    <a href="delete.php?id=<?php echo $tours['id'] ?>">Delete</a>
                 </td>
             </tr>
             <?php endforeach; ?>

@@ -1,12 +1,6 @@
 <?php
 session_start();
-// Database connection
-$host = 'localhost:3307';
-$username = 'root';
-$password = '';
-$dbname = 'travel blog';
-$conn = new mysqli($host, $username, $password, $dbname);
-if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+require_once '../../database/connect-db.php'; // Kết nối đến cơ sở dữ liệu
 
 // Post ID for Tokyo (set a unique ID for this post, e.g., 3)
 $post_id = 3;

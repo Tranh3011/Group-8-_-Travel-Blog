@@ -152,7 +152,7 @@ if ($_POST) { // post data is not empty
         <h2 class="text-success">User created successfully! You are redirecting to index.php after 5s...</h2>
         <script>
             setTimeout(function() {
-                window.location.href = "index.php"; // Chuyển hướng đến indexUser.php
+                window.location.href = "index.php";
             }, 3000);
         </script>
     <?php else: ?>

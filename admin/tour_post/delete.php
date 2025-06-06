@@ -7,7 +7,7 @@ if (isset($_GET['id'])) {
 }
 
 if (!$id) {
-    header('Location: indexcategory.php');
+    header('Location: index.php');
 }
 
 
@@ -17,13 +17,13 @@ if ($_POST) { //post data is not empty
         $dbhost = 'localhost:3307';
         $dbuser = 'root';
         $dbpassword = '';
-        $dbname = 'travel blog';
+        $dbname = 'travel_blog';
 
         $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
         or die ('Failed to connect to db.');
 
         //insert
-        $sql = "DELETE FROM category WHERE `category`.`CategoryID` = '$id'";
+        $sql = "DELETE FROM tour_posts WHERE `tour_posts`.`id` = '$id'";
         $result = mysqli_query($conn, $sql);
 
         //close connectionm
@@ -42,15 +42,15 @@ if ($_POST) { //post data is not empty
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     </head>
-    <body>
+    <body class="container">
         <?php include("../../inc/_navbar.php"); ?>
-<div class="container">
-    <h1>Delete a selected Category</h1>
+
+    <h1>Delete a selected Tour Post</h1>
     <?php if (isset($result) && $result): ?>
         <h2 class="text-success">Delete successfully! Your are redirecting to index.php after 3s...</h2>
         <script>
             setTimeout(function() {
-                window.location.href = "indexcategory.php";
+                window.location.href = "index.php";
             }, 3000);
         </script>
     <?php else: ?>
@@ -59,7 +59,7 @@ if ($_POST) { //post data is not empty
     <form action="" method="POST" enctype="multipart/form-data">
         <h2 class="text-danger">Are you sure?</h2>
 
-        <a href="indexcategory.php">Cancel</a>
+        <a href="index.php">Cancel</a>
 
         <button 
         name="action" value="confirm"

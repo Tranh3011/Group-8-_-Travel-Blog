@@ -25,6 +25,12 @@ $destination_no = $conn->query("SELECT * FROM destination ") or die('query faile
 $destinationcount = mysqli_num_rows( $destination_no );
 $category_no = $conn->query("SELECT * FROM category ") or die('query failed');
 $categorycount = mysqli_num_rows( $category_no );
+$tour_posts_no = $conn->query("SELECT * FROM tour_posts ") or die('query failed');
+$tour_postscount = mysqli_num_rows( $tour_posts_no );
+// $booking_no = $conn->query("SELECT * FROM booking ") or die('query failed');
+// $bookingscount = mysqli_num_rows( $booking_no );
+// $invoice_no = $conn->query("SELECT * FROM invoice ") or die('query failed');
+// $invoicescount = mysqli_num_rows( $invoice_no );
 
 ?>
 
@@ -129,6 +135,24 @@ $categorycount = mysqli_num_rows( $category_no );
             <div class="stat-card">
                 <h2><?php echo $categorycount; ?></h2>
                 <p>Total Categories</p>
+            </div>
+
+            <!-- Tổng Booking (hiển thị số 5) -->
+            <!-- <div class="stat-card">
+                <h2><?php echo $bookingcount; ?></h2>
+                <p>Total Bookings</p>
+            </div> -->
+
+            <!-- Tổng Payment (hiển thị số 4) -->
+            <!-- <div class="stat-card">
+                <h2><?php echo $invoicecount; ?></h2>
+                <p>Total Invoices</p>
+            </div> -->
+
+            <!-- Tổng số Tour (hiển thị số 9) -->
+            <div class="stat-card">
+                <h2><?php echo $tour_postscount; ?></h2>
+                <p>Total Tours</p>
             </div>
         </div>
     </div>

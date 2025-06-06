@@ -85,16 +85,17 @@ $user_type = $_SESSION['user_type'] ?? null;
                 <a href="/PHP/TravelBlog/admin/category/indexcategory.php">Manage Category</a>
                 <a href="/PHP/TravelBlog/admin/comment/index.php">Manage Comment</a>
                 <a href="/PHP/TravelBlog/admin/invoice/index.php">Manage Invoice</a>
-                <a href="/PHP/TravelBlog/admin/booking/index.php">Manage Booking</a>
+                <a href="/PHP/TravelBlog/admin/tour_post/index.php">Manage Tour</a>
                 <a href="/PHP/TravelBlog/auth/logout.php">Logout</a>
             <?php elseif ($user_type === 'user'): ?>
-                <a href="/PHP/TravelBlog/customer/Home_user/index_homepage old.php">Home</a>
+                <a href="/PHP/TravelBlog/customer/Home_user/index_homepage.php">Home</a>
                 <a href="/PHP/TravelBlog/customer/Home_user/profile.php">My Profile</a>
-                <a href="/PHP/TravelBlog/customer/Home_user/post_detail.php">Post</a>
-                <a href="/PHP/TravelBlog/customer/Destination/index.php">Booking Tour</a>
+                <a href="/PHP/TravelBlog/customer/Home_user/post_index.php">Post</a>
+                <a href="/PHP/TravelBlog/customer/tour/index.php">Booking Tour</a>
                 <a href="/PHP/TravelBlog/auth/logout.php">Logout</a>
             <?php else: ?>
-                <a href="/PHP/TravelBlog/customer/Home_user/index_homepage old.php">Home</a>
+                <a href="/PHP/TravelBlog/customer/Home_user/index_homepage.php">Home</a>
+                <a href="/PHP/TravelBlog/customer/tour/index.php">Booking Tour</a>
                 <a href="/PHP/TravelBlog/auth/login.php">Login</a>
                 <a href="/PHP/TravelBlog/auth/aboutus.php">About Us</a>
                 <a href="/PHP/TravelBlog/auth/register.php">Sign Up</a>

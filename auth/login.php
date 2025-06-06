@@ -1,17 +1,21 @@
 <?php
 session_start();
 
+// Khởi tạo biến
 $email = $password = '';
 $errors = [];
 
+// Xử lý thông báo từ session
 $success_message = $_SESSION['success_message'] ?? '';
 $error_message_redirect = $_SESSION['error_message'] ?? '';
 unset($_SESSION['success_message'], $_SESSION['error_message']);
 
+// Xử lý form submit
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
+    // Validate input
     if (empty($email)) {
         $errors['email'] = 'Please enter your email.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -21,9 +25,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors['password'] = 'Please enter your password.';
     }
 
+    // Nếu không có lỗi validation
     if (empty($errors)) {
         require_once '../database/connect-db.php';
 
+        // Khởi tạo biến $stmt để có thể kiểm tra sau
         $stmt = null;
         
         try {
@@ -41,16 +47,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 } elseif ($user['Password'] != $password) {
                     $errors['password'] = 'Incorrect email or password.';
                 } else {
-                
-                    $_SESSION['user_id'] = $user['UserID'];
-                    $_SESSION['email'] = $user['Email'];
-                    $_SESSION['user_type'] = $user['user_type'];
-
-                    if ($stmt) {
-                        $stmt->close();
+                    // Đăng nhập thành công
+                    // Start session if not already started
+                    if (session_status() === PHP_SESSION_NONE) {
+                        session_start();
                     }
-                    $conn->close();
-
+                    
+                    // Set session variables (đồng bộ key với các file khác)
+                    $_SESSION['user_id'] = $user['UserID'];
+                    $_SESSION['email'] = $user['Email']; 
+                    $_SESSION['user_type'] = $user['user_type'];
+                    $_SESSION['LoggedIn'] = true;
+                    
+                    // Optional: Set session cookie parameters for longer persistence
+                    $lifetime = 30 * 24 * 60 * 60; // 30 days
+                    session_set_cookie_params($lifetime);
+                    setcookie(session_name(), session_id(), time() + $lifetime);
+                    
+                    // Redirect based on user type
                     header('Location: ' . ($user['user_type'] == 'admin' ? 
                         '../admin/index_homeAdmin.php' : 
                         '../customer/Home_user/index_homepage.php'));
@@ -61,9 +75,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         } catch (Exception $e) {
             $errors['database'] = "An error occurred. Please try again.";
-            error_log("Login error: " . $e->getMessage());
+error_log("Login error: " . $e->getMessage());
         } finally {
-
+            // Luôn đóng kết nối và statement trong khối finally
             if ($stmt instanceof mysqli_stmt) {
                 $stmt->close();
             }
@@ -73,7 +87,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+
+// After successful login, add this before the redirect:
+if (isset($_SESSION['requested_page'])) {
+    $redirect_to = $_SESSION['requested_page'];
+    unset($_SESSION['requested_page']);
+    header("Location: " . $redirect_to);
+    exit();
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

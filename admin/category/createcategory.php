@@ -2,33 +2,22 @@
 //--initial data
 $errors = [];
 $name = '';
-$category = '';
 $description = '';
-$fileImage = '';
+// $fileImage = '';
+// $image = '';
 
 if ($_POST) { // post data is not empty
     //-- get user data
     if (isset($_POST['name'])) {
         $name = $_POST['name'];
     }
-    if (isset($_POST['category'])) {
-        $category = $_POST['category'];
-    }
     if (isset($_POST['description'])) {
         $description = $_POST['description'];
     }
-    if (isset($_FILES['fileImage']) && $_FILES['fileImage']['error'] == 0) {
-        $fileImage = $_FILES['fileImage'];
-    }
-
     // -- clean user data
     $name = trim($name);
     $name = htmlspecialchars($name);
     $name = addslashes($name);
-
-    $category = trim($category);
-    $category = htmlspecialchars($category);
-    $category = addslashes($category);
 
     $description = trim($description);
     $description = htmlspecialchars($description);
@@ -38,42 +27,9 @@ if ($_POST) { // post data is not empty
     if (empty($name)) {
         $errors['name'] = 'Name is required';
     }
-    if (empty($category)) {
-        $errors['category'] = 'Category is required';
-    }
     if (empty($description)) {
         $errors['description'] = 'Description is required';
     }
-
-    // validation file type
-    if ($fileImage && is_array($fileImage) && isset($fileImage['name']) && $fileImage['name'] !== '') {
-        $fileType = strtolower(pathinfo($fileImage['name'], PATHINFO_EXTENSION));
-        if (!in_array($fileType, ['jpg', 'png', 'jpeg'])) {
-            $errors['fileImage'] = 'Invalid file type, expect png, jpg, jpeg';
-        }
-        if ($fileImage["size"] > 20 * 1024 * 1024) {
-            $errors['fileImage'] = 'File too large, expect <= 20mb';
-        }
-    } else {
-        $fileImage = null;
-    }
-
-    //--validate user data
-    if (empty($errors)) {
-        if ($fileImage && isset($fileImage['tmp_name']) && $fileImage['tmp_name'] !== '') {
-            $uploadDir = realpath(__DIR__ . '/../../uploads');
-            if ($uploadDir === false) {
-                $uploadDir = __DIR__ . '/../../uploads';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-            }
-            $imageName = uniqid('cat_', true) . '_' . basename($fileImage["name"]);
-            $image = "uploads/" . $imageName;
-            move_uploaded_file($fileImage["tmp_name"], $uploadDir . "/" . $imageName);
-        } else {
-            $image = "";
-        }
 
         //connect db
         $dbhost = 'localhost:3307';
@@ -86,11 +42,11 @@ if ($_POST) { // post data is not empty
             $errors['db'] = 'Failed to connect to db: ' . mysqli_connect_error();
         } else {
             // insert using prepared statement (CategoryID tự động tăng)
-            $sql = "INSERT INTO `category` (`Name`, `Category`, `Description`, `Created_at`, `Updated_at`, `Image`)
-                    VALUES (?, ?, ?, NOW(), NOW(), ?)";
+            $sql = "INSERT INTO `category` (`Name`, `Description`, `Created_at`, `Updated_at`)
+                    VALUES (?, ?, NOW(), NOW())";
             $stmt = mysqli_prepare($conn, $sql);
             if ($stmt) {
-                mysqli_stmt_bind_param($stmt, "ssss", $name, $category, $description, $image);
+                mysqli_stmt_bind_param($stmt, "ss", $name, $description);
                 $result = mysqli_stmt_execute($stmt);
                 if (!$result) {
                     $errors['db'] = 'Failed to execute query: ' . mysqli_stmt_error($stmt);
@@ -102,9 +58,7 @@ if ($_POST) { // post data is not empty
             mysqli_close($conn);
         }
     }
-}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -138,16 +92,6 @@ if ($_POST) { // post data is not empty
         </div>
 
         <div class="form-group">
-            <label for="category" class="form-label">Category</label>
-            <input type="text" id="category" name="category" class="form-control" 
-                value="<?php echo $category; ?>">
-
-            <?php if (isset($errors['category'])): ?>
-                <span class="text-danger"><?php echo $errors['category']; ?></span>
-            <?php endif; ?>
-        </div>
-
-        <div class="form-group">
             <label for="description" class="form-label">Description</label>
             <input type="text" id="description" name="description" class="form-control" 
                 value="<?php echo $description; ?>">
@@ -157,17 +101,38 @@ if ($_POST) { // post data is not empty
             <?php endif; ?>
         </div>
 
-        <div class="form-group">
-            <label for="fileImage" class="form-label">File image</label>
-            <input type="file" id="fileImage" name="fileImage" class="form-control">
-
-            <?php if (isset($errors['fileImage'])): ?>
-                <span class="text-danger"><?php echo $errors['fileImage']; ?></span>
-            <?php endif; ?>
-        </div>
-
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
+    <hr>
+    <!-- Hiển thị danh sách category mới nhất -->
+    <?php
+    $dbhost = 'localhost:3307';
+    $dbuser = 'root';
+    $dbpassword = '';
+    $dbname = 'travel blog';
+    $conn = mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname);
+    if ($conn) {
+        $sql = "SELECT CategoryID, Name, Category, Description, Created_at FROM category ORDER BY CategoryID DESC LIMIT 10";
+        $rs = mysqli_query($conn, $sql);
+        if ($rs && mysqli_num_rows($rs) > 0) {
+            echo '<h2 class="mt-5">Latest Categories</h2>';
+            echo '<table class="table table-bordered mt-2">';
+            echo '<thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Description</th><th>Created at</th></tr></thead><tbody>';
+            while ($row = mysqli_fetch_assoc($rs)) {
+                echo '<tr>';
+                echo '<td>' . htmlspecialchars($row['CategoryID']) . '</td>';
+                echo '<td>' . htmlspecialchars($row['Name']) . '</td>';
+                echo '<td>' . htmlspecialchars($row['Category']) . '</td>';
+                echo '<td>' . htmlspecialchars($row['Description']) . '</td>';
+                echo '<td>' . htmlspecialchars($row['Created_at']) . '</td>';
+                echo '</tr>';
+            }
+            echo '</tbody></table>';
+        }
+        mysqli_close($conn);
+    }
+    ?>
     <?php endif; ?>
+</div>
 </body>
 </html>

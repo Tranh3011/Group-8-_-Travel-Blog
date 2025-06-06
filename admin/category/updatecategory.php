@@ -36,27 +36,16 @@ if (!$categoryData) {
 $errors = [];
 $name = $categoryData['Name'];
 $description = $categoryData['Description'];
-$image = $categoryData['Image'];
 $category_id = $categoryData['CategoryID'];
 
-$fileImage = '';
-
 if ($_POST) {
- //post data is not empty
-    //-- get user data
     if (isset($_POST['name'])) {
         $name = $_POST['name'];
     }
     if (isset($_POST['description'])) {
         $description = $_POST['description'];
     }
-    if (isset($_POST['category_id'])) {
-        $category_id = $_POST['category_id'];
-    }
-    if (file_exists($_FILES['fileImage']['tmp_name'])) {
-        $fileImage = $_FILES['fileImage'];
-    }
-    
+
     // -- clean user data
     $name = trim($name);
     $name = htmlspecialchars($name);
@@ -66,44 +55,15 @@ if ($_POST) {
     $description = htmlspecialchars($description);
     $description = addslashes($description);
 
-    $category_id = trim($category_id);
-    $category_id = htmlspecialchars($category_id);
-    $category_id = addslashes($category_id);
-
     // required
     if (empty($name)) {
         $errors['name'] = 'Name is required';
-    } 
+    }
     if (empty($description)) {
         $errors['description'] = 'Description is required';
-    } 
-    if (empty($category_id)) {
-        $errors['category_id'] = 'CategoryID is required';
     }
-    //validation file type
-    if ($fileImage) {
-        $fileType = strtolower(pathinfo($fileImage['name'], PATHINFO_EXTENSION));
-        if (!in_array($fileType, ['jpg', 'png', 'jpeg'])) {
-            $errors['fileImage'] = 'Invalid file type, expect png, jpg, jpeg';
-        }
 
-    //validation file size
-    if($fileImage["size"] > 20*1024*1024) {
-        $errors['fileImage'] = 'File too large, expect <= 20mb';
-    }
-}
-
-
-    
-    //--validate user data
     if (empty($errors)) {
-        // move uploaded file to /uploads if new file is provided
-        if ($fileImage) {
-            $image = "../uploads/" . basename($fileImage["name"]);
-            move_uploaded_file($fileImage["tmp_name"], $image);
-        }
-
-        //--update into db
         //connect db
         $dbhost = 'localhost:3307';
         $dbuser = 'root';
@@ -113,22 +73,19 @@ if ($_POST) {
         $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname)
         or die ('Failed to connect to db.');
 
-        //insert
+        // update only Name and Description (not CategoryID)
         $sql = "UPDATE `category`
-                SET    `Name` = '$name',
-                       `CategoryID` = '$category_id',
-                       `Description` = '$description', 
-                       `Image` = '$image'
-                WHERE `category`.`CategoryID` = '$id'";
+                SET `Name` = '$name',
+                    `Description` = '$description',
+                    `Updated_at` = NOW()
+                WHERE `CategoryID` = '$id'";
 
         $result = mysqli_query($conn, $sql);
 
-        //close connection
         @mysqli_close($conn);
-        }
     }
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -152,52 +109,30 @@ if ($_POST) {
             }, 3000);
         </script>
     <?php else: ?>
-
-    <!-- filter -->
     <form action="" method="POST" enctype="multipart/form-data">
         <div class="form-group">
-                <label for="name" class="form-label">Name</label>
-                <input 
-                    type="text" id="name" name="name" class="form-control" 
-                    value="<?php echo $name; ?>"
-                >
-                <?php if (isset($errors['name'])): ?>
-                    <span class="text-danger"><?php echo $errors['name']; ?></span>
-                <?php endif; ?>
-        </div>
-
-        <div class="form-group">
-                <label for="description" class="form-label">Description</label>
-                <input 
-                    type="text" id="description" name="description" class="form-control" 
-                    value="<?php echo $description; ?>"
-                >
-                <?php if (isset($errors['description'])): ?>
-                    <span class="text-danger"><?php echo $errors['description']; ?></span>
-                <?php endif; ?>
-        </div>
-
-        <div class="form-group">
-            <label for="category_id" class="form-label">CategoryID</label>
-            <input type="text" id="category_id" name="category_id" class="form-control" 
-                value="<?php echo $category_id; ?>">
-            <?php if (isset($errors['category_id'])): ?>
-                <span class="text-danger"><?php echo $errors['category_id']; ?></span>
+            <label for="name" class="form-label">Name</label>
+            <input 
+                type="text" id="name" name="name" class="form-control" 
+                value="<?php echo $name; ?>"
+            >
+            <?php if (isset($errors['name'])): ?>
+                <span class="text-danger"><?php echo $errors['name']; ?></span>
             <?php endif; ?>
         </div>
-
-        <!-- file-->
         <div class="form-group">
-            <label for="fileImage" class="form-label">File image</label>
-            <input type="file" id="fileImage" name="fileImage" class="form-control">
-            
-            <?php if (isset($errors['fileImage'])): ?>
-                <span class="text-danger"><?php echo $errors['fileImage']; ?></span>
+            <label for="description" class="form-label">Description</label>
+            <input 
+                type="text" id="description" name="description" class="form-control" 
+                value="<?php echo $description; ?>"
+            >
+            <?php if (isset($errors['description'])): ?>
+                <span class="text-danger"><?php echo $errors['description']; ?></span>
             <?php endif; ?>
         </div>
-
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
     <?php endif; ?>
+</div>
 </body>
 </html>

@@ -44,6 +44,26 @@ if ($_POST) { // post data is not empty
     <?php include("../../inc/_navbar.php") ?>
     <div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
         <h1 class="mb-4 text-center">Delete a selected comment: id= <?php echo $id; ?></h1>
+        <?php
+        // Hiển thị FullName của comment nếu có
+        $dbhost = 'localhost:3307';
+        $dbuser = 'root';
+        $dbpassword = '';
+        $dbname = 'travel blog';
+        $conn = @mysqli_connect($dbhost, $dbuser, $dbpassword, $dbname);
+        $fullname = '';
+        if ($conn && !empty($id)) {
+            $sql = "SELECT FullName FROM comment WHERE CommentID = '$id' LIMIT 1";
+            $rs = mysqli_query($conn, $sql);
+            if ($rs && $row = mysqli_fetch_assoc($rs)) {
+                $fullname = $row['FullName'];
+            }
+            mysqli_close($conn);
+        }
+        if ($fullname) {
+            echo '<h4 class="mb-4 text-center">Full Name: <span class="text-primary">' . htmlspecialchars($fullname) . '</span></h4>';
+        }
+        ?>
         <?php if (isset($result) && $result): ?>
             <h2 class="text-success text-center">Deleted successfully! You are redirecting to index.php after 3s...</h2>
             <script>
