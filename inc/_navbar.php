@@ -84,6 +84,7 @@ $user_type = $_SESSION['user_type'] ?? null;
                 <a href="/PHP/TravelBlog/admin/destination/Destination.php">Manage Destination</a>
                 <a href="/PHP/TravelBlog/admin/category/indexcategory.php">Manage Category</a>
                 <a href="/PHP/TravelBlog/admin/comment/index.php">Manage Comment</a>
+                <a href="/PHP/TravelBlog/admin/tour_booking/index (1).php">Manage Booking</a>
                 <a href="/PHP/TravelBlog/admin/invoice/index.php">Manage Invoice</a>
                 <a href="/PHP/TravelBlog/admin/tour_post/index.php">Manage Tour</a>
                 <a href="/PHP/TravelBlog/auth/logout.php">Logout</a>

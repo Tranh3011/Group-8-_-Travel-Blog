@@ -1,80 +1,136 @@
 <?php
-session_start();
+
 require_once '../../database/connect-db.php';
 
-// Redirect if not logged in
-if (!isset($_SESSION['UserID'])) {
-    header("Location: ../auth/login.php");
-    exit();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+    exit;
 }
 
-$errors = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tour_id = (int)($_POST['tour_id'] ?? 0);
-    $customer_id = (int)$_SESSION['UserID'];
-    $full_name = trim($_POST['full_name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
-    $participants = (int)($_POST['participants'] ?? 0);
-    $booking_date = $_POST['booking_date'] ?? '';
-    $special_requests = trim($_POST['special_requests'] ?? '');
-    $total_price = (float)($_POST['total_price'] ?? 0);
+// Clean and validate input data
+$tour_post_id = filter_input(INPUT_POST, 'tour_post_id', FILTER_VALIDATE_INT);
+$guest_user_id = (int)$_SESSION['UserID'];
+$guest_full_name = trim(filter_input(INPUT_POST, 'guest_full_name', FILTER_SANITIZE_STRING));
+$full_name = trim(filter_input(INPUT_POST, 'full_name', FILTER_SANITIZE_STRING));
+$email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+$phone = trim(filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING));
+$num_people = filter_input(INPUT_POST, 'num_people', FILTER_VALIDATE_INT);
+$travel_date = trim(filter_input(INPUT_POST, 'travel_date', FILTER_SANITIZE_STRING));
+$end_date = trim(filter_input(INPUT_POST, 'end_date', FILTER_SANITIZE_STRING));
+$notes = trim(filter_input(INPUT_POST, 'notes', FILTER_SANITIZE_STRING));
+$special_requests = trim(filter_input(INPUT_POST, 'special_requests', FILTER_SANITIZE_STRING));
+$price = trim($_POST['price'] ?? '0');  // keep commas, no math
 
-    // Validate inputs
-    if (empty($full_name)) {
-        $errors[] = "Full name is required.";
-    }
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Valid email is required.";
-    }
-    if (empty($phone) || !preg_match('/^[0-9]{10,15}$/', $phone)) {
-        $errors[] = "Valid phone number (10-15 digits) is required.";
-    }
-    if ($participants < 1) {
-        $errors[] = "At least one participant is required.";
-    }
-    if (empty($booking_date) || strtotime($booking_date) < strtotime(date('Y-m-d'))) {
-        $errors[] = "Valid future booking date is required.";
-    }
+$owner_user_id = filter_input(INPUT_POST, 'owner_user_id', FILTER_VALIDATE_INT);
 
-    // Fetch tour details
-    $sql = "SELECT user_id, price, group_size FROM tour_posts WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $tour_id);
-    $stmt->execute();
-    $tour = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+// Input validation
+// $errors = [];
+// if (!$tour_post_id) {
+//     $errors[] = 'Invalid tour selection.';
+// }
+// if (empty($guest_full_name)) {
+//     $errors[] = 'Guest full name is required.';
+// }
+// if (empty($full_name)) {
+//     $errors[] = 'Contact name is required.';
+// }
+// if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+//     $errors[] = 'Valid email address is required.';
+// }
+// if (!preg_match('/^[0-9]{10,15}$/', $phone)) {
+//     $errors[] = 'Valid phone number (10-15 digits) is required.';
+// }
+// if (!$num_people || $num_people < 1) {
+//     $errors[] = 'At least one participant is required.';
+// }
+// if (empty($travel_date) || strtotime($travel_date) < strtotime(date('Y-m-d'))) {
+//     $errors[] = 'Valid future travel start date is required.';
+// }
+// if (empty($end_date) || strtotime($end_date) <= strtotime($travel_date)) {
+//     $errors[] = 'End date must be after travel start date.';
+// }
+
+
+// Return errors if any
+if (!empty($errors)) {
+    echo json_encode(['success' => false, 'message' => implode(' ', $errors)]);
+    exit;
+}
+
+try {
+    // Start transaction
+    $conn->begin_transaction();
+
+    // Check tour availability and details
+    $tour_sql = "SELECT t.*, u.FirstName, u.LastName 
+                 FROM tour_posts t 
+                 JOIN user u ON t.user_id = u.UserID 
+                 WHERE t.id = ? AND t.status = 'approved'";
+    $stmt_tour = $conn->prepare($tour_sql);
+    if (!$stmt_tour) {
+        throw new Exception('Failed to prepare tour query: ' . $conn->error);
+    }
+    $stmt_tour->bind_param("i", $tour_post_id);
+    $stmt_tour->execute();
+    $tour = $stmt_tour->get_result()->fetch_assoc();
+    $stmt_tour->close();
 
     if (!$tour) {
-        $errors[] = "Tour not found.";
-    } elseif ($participants > $tour['group_size']) {
-        $errors[] = "Participants exceed group size limit.";
-    } elseif ($total_price != $tour['price'] * $participants) {
-        $errors[] = "Invalid total price.";
+        throw new Exception('Tour not found or not available.');
     }
 
-    // Insert booking if no errors
-    if (empty($errors)) {
-        $owner_id = $tour['user_id'];
-        $sql = "INSERT INTO bookings (tour_id, customer_id, owner_id, booking_date, participants, total_price, full_name, email, phone, special_requests, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiisidssss", $tour_id, $customer_id, $owner_id, $booking_date, $participants, $total_price, $full_name, $email, $phone, $special_requests);
-        if ($stmt->execute()) {
-            $booking_id = $conn->insert_id;
-            header("Location: payment.php?booking_id=$booking_id");
-            exit();
-        } else {
-            $errors[] = "Failed to create booking: " . $stmt->error;
-        }
-        $stmt->close();
+
+    // Use tour's user_id if owner_user_id is not provided
+    $owner_user_id = $owner_user_id ?: $tour['user_id'];
+    $owner_full_name = $tour['FirstName'] . ' ' . $tour['LastName'];
+
+    // Insert booking
+    $booking_sql = "INSERT INTO tour_booking (
+        tour_post_id, guest_user_id, guest_full_name, owner_user_id, owner_full_name, 
+        full_name, email, phone, num_people, travel_date, end_date, notes, 
+        special_requests, price, status, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'waiting_response', NOW())";
+
+    $stmt_booking = $conn->prepare($booking_sql);
+    if (!$stmt_booking) {
+        throw new Exception('Failed to prepare booking query: ' . $conn->error);
     }
+    $stmt_booking->bind_param("iisissssisssds", 
+        $tour_post_id, 
+        $guest_user_id,
+        $guest_full_name,
+        $owner_user_id,
+        $owner_full_name,
+        $full_name,
+        $email,
+        $phone,
+        $num_people,
+        $travel_date,
+        $end_date,
+        $notes,
+        $special_requests,
+        $price
+    );
+
+    if (!$stmt_booking->execute()) {
+        throw new Exception('Failed to create booking: ' . $stmt_booking->error);
+    }
+
+    $booking_id = $conn->insert_id;
+    $stmt_booking->close();
+
+    // Commit transaction
+    $conn->commit();
+
+    // Return success response
+    echo json_encode(['success' => true, 'message' => 'Booking request sent successfully! Booking ID: ' . $booking_id]);
+
+} catch (Exception $e) {
+    // Rollback transaction on error
+    $conn->rollback();
+    echo json_encode(['success' => false, 'message' => 'Booking error: ' . $e->getMessage()]);
 }
 
 $conn->close();
-
-// Display errors if any (fallback)
-if (!empty($errors)) {
-    echo "<div class='alert alert-danger'>" . implode("<br>", array_map('htmlspecialchars', $errors)) . "</div>";
-}
 ?>

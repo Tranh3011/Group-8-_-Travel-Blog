@@ -51,14 +51,11 @@ if (isset($_GET['updated_at']) && !empty($_GET['updated_at'])) {
 
 // Pagination
 $limit = 9;
+$countSql = "SELECT COUNT(*) AS total FROM ($sql) t";
+$result = mysqli_query($conn, $countSql);
+$row = mysqli_fetch_assoc($result);
+$totalRecords = $row['total'];
 
-// Prepare count SQL before adding LIMIT/OFFSET
-$countSql = "SELECT COUNT(*) AS total FROM (" . $sql . ") as temp";
-$countResult = mysqli_query($conn, $countSql);
-$totalRecords = 0;
-if ($countResult && $row = mysqli_fetch_assoc($countResult)) {
-    $totalRecords = $row['total'];
-}
 $totalPages = ceil($totalRecords / $limit);
 
 $page = 1;
@@ -69,12 +66,10 @@ $offset = ($page - 1) * $limit;
 $sql .= " LIMIT $limit OFFSET $offset";
 
 $result = @mysqli_query($conn, $sql);
-$tours = $result ? @mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+$tours = @mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 // Free result and close connection
-if ($result instanceof mysqli_result) {
-    @mysqli_free_result($result);
-}
+@mysqli_free_result($result);
 @mysqli_close($conn);
 
 // Function to build query string for pagination

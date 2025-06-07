@@ -120,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['create_tour'])) {
     }
 
     if (empty($errors)) {
-        $upload_dir = "../../uploads/";
+        $upload_dir = "../../../uploads/";
         $image_name = uniqid() . '_' . basename($fileImage["name"]);
         $image_path = $upload_dir . $image_name;
         
@@ -182,7 +182,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_tour'])) {
             $errors['tour_image'] = "File is too large, expect smaller than 20MB";
         }
         if (empty($errors)) {
-            $upload_dir = "../../uploads/";
+            $upload_dir = "../../../uploads/";
             $image_name = uniqid() . '_' . basename($fileImage["name"]);
             $image_path = $upload_dir . $image_name;
             move_uploaded_file($fileImage["tmp_name"], $image_path);
@@ -235,13 +235,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_tour'])) {
     }
     $stmt_delete->close();
 }
-
 // Lấy danh sách bookings
 $limit = 10;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-$sql_bookings = "SELECT b.id, b.tour_post_id, b.guest_full_name, b.num_people, b.travel_date, b.end_date, b.notes, b.status, b.created_at, 
+$sql_bookings = "SELECT b.id, b.tour_post_id, b.guest_full_name, b.num_people, b.travel_date, b.end_date, t.price, b.status, b.created_at, b.email, b.phone, b.special_requests, 
                  t.title, c.Name as category, d.Name as destination
                  FROM tour_booking b
                  JOIN tour_posts t ON b.tour_post_id = t.id
@@ -249,7 +248,6 @@ $sql_bookings = "SELECT b.id, b.tour_post_id, b.guest_full_name, b.num_people, b
                  JOIN destination d ON t.destination = d.DestinationID
                  WHERE b.owner_user_id = ?";
 
-// Apply filters
 $filter_params = [];
 $filter_types = "i";
 if (isset($_GET['tour_name']) && !empty($_GET['tour_name'])) {
@@ -280,39 +278,169 @@ if (isset($_GET['status']) && !empty($_GET['status'])) {
 
 $filter_params = array_merge([$user_id], $filter_params);
 
-// Count total bookings for pagination
 $count_sql = "SELECT COUNT(*) as total FROM ($sql_bookings) as temp";
 $stmt_count = $conn->prepare($count_sql);
-if ($stmt_count) {
-    $stmt_count->bind_param($filter_types, ...$filter_params);
-    $stmt_count->execute();
-    $count_result = $stmt_count->get_result();
-    $total_bookings = $count_result->fetch_assoc()['total'];
-    $stmt_count->close();
-} else {
-    // Fallback: run count query directly if prepare fails (should only happen if MySQL doesn't allow prepare for subquery)
-    $total_bookings = 0;
-    $count_result = $conn->query($count_sql);
-    if ($count_result) {
-        $row = $count_result->fetch_assoc();
-        $total_bookings = $row ? $row['total'] : 0;
-    }
-}
+$stmt_count->bind_param($filter_types, ...$filter_params);
+$stmt_count->execute();
+$total_bookings = $stmt_count->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_bookings / $limit);
+$stmt_count->close();
 
 $sql_bookings .= " ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
+$filter_params[] = $limit;
+$filter_params[] = $offset;
+$filter_types .= "ii";
 $stmt_bookings = $conn->prepare($sql_bookings);
-if ($stmt_bookings) {
-    $filter_params[] = $limit;
-    $filter_params[] = $offset;
-    $filter_types .= "ii";
-    $stmt_bookings->bind_param($filter_types, ...$filter_params);
-    $stmt_bookings->execute();
-    $result_bookings = $stmt_bookings->get_result();
-    $bookings = $result_bookings->fetch_all(MYSQLI_ASSOC);
-    $stmt_bookings->close();
-} else {
-    $bookings = [];
+$stmt_bookings->bind_param($filter_types, ...$filter_params);
+$stmt_bookings->execute();
+$bookings = $stmt_bookings->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt_bookings->close();
+
+// Lấy danh sách my posts (bài viết của user)
+$sql_my_posts = "SELECT p.PostID, p.Title, p.Content, p.Image, c.Name AS category_name, d.Name AS destination_name, p.Created_at, p.Updated_at
+                 FROM posts p
+                 LEFT JOIN category c ON p.CategoryID = c.CategoryID
+                 LEFT JOIN destination d ON p.DestinationID = d.DestinationID
+                 WHERE p.UserID = ?
+                 ORDER BY p.Created_at DESC";
+$stmt_my_posts = $conn->prepare($sql_my_posts);
+$stmt_my_posts->bind_param("i", $user_id);
+$stmt_my_posts->execute();
+$my_posts = $stmt_my_posts->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt_my_posts->close();
+
+// Xử lý tạo bài viết mới
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['create_post'])) {
+    $title = trim($_POST['title']);
+    $content = trim($_POST['content']);
+    $category_id = trim($_POST['category_id']);
+    $destination_id = trim($_POST['destination_id']);
+    $fileImage = isset($_FILES['fileImage']) ? $_FILES['fileImage'] : null;
+
+    $title = htmlspecialchars($title);
+    $content = htmlspecialchars($content);
+
+    if (empty($title)) $errors['post_title'] = "Title is required";
+    if (empty($content)) $errors['post_content'] = "Content is required";
+    if (empty($category_id)) $errors['post_category'] = "Category is required";
+    if (empty($destination_id)) $errors['post_destination'] = "Destination is required";
+    if ($fileImage && $fileImage['error'] == UPLOAD_ERR_OK) {
+        $fileType = strtolower(pathinfo($fileImage['name'], PATHINFO_EXTENSION));
+        if (!in_array($fileType, ['jpg', 'jpeg', 'png'])) {
+            $errors['post_image'] = "Invalid file type, only JPG, JPEG, PNG are allowed.";
+        }
+        if ($fileImage["size"] > 20 * 1024 * 1024) {
+            $errors['post_image'] = "File is too large, expect smaller than 20MB";
+        }
+    } else {
+        $errors['post_image'] = "Image is required";
+    }
+
+    if (empty($errors)) {
+        $upload_dir = "../../../uploads/";
+        $image_name = uniqid() . '_' . basename($fileImage["name"]);
+        $image_path = $upload_dir . $image_name;
+        
+        if (move_uploaded_file($fileImage["tmp_name"], $image_path)) {
+            $sql_insert = "INSERT INTO posts (UserID, Title, Content, CategoryID, DestinationID, Image, Created_at, Updated_at) 
+                           VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
+            $stmt_insert = $conn->prepare($sql_insert);
+            $stmt_insert->bind_param("issssi", $user_id, $title, $content, $category_id, $destination_id, $image_path);
+            
+            if ($stmt_insert->execute()) {
+                $success_message = "Post created successfully!";
+                $stmt_my_posts = $conn->prepare($sql_my_posts);
+                $stmt_my_posts->bind_param("i", $user_id);
+                $stmt_my_posts->execute();
+                $my_posts = $stmt_my_posts->get_result()->fetch_all(MYSQLI_ASSOC);
+                $stmt_my_posts->close();
+            } else {
+                $errors['database'] = "Error creating post: " . $conn->error;
+            }
+            $stmt_insert->close();
+        } else {
+            $errors['post_image'] = "Error uploading image";
+        }
+    }
+}
+
+// Xử lý cập nhật bài viết
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_post'])) {
+    $post_id = (int)$_POST['post_id'];
+    $title = trim($_POST['title']);
+    $content = trim($_POST['content']);
+    $category_id = trim($_POST['category_id']);
+    $destination_id = trim($_POST['destination_id']);
+    $fileImage = isset($_FILES['fileImage']) ? $_FILES['fileImage'] : null;
+
+    $title = htmlspecialchars($title);
+    $content = htmlspecialchars($content);
+
+    if (empty($title)) $errors['post_title'] = "Title is required";
+    if (empty($content)) $errors['post_content'] = "Content is required";
+    if (empty($category_id)) $errors['post_category'] = "Category is required";
+    if (empty($destination_id)) $errors['post_destination'] = "Destination is required";
+
+    $image_path = null;
+    if ($fileImage && $fileImage['error'] == UPLOAD_ERR_OK) {
+        $fileType = strtolower(pathinfo($fileImage['name'], PATHINFO_EXTENSION));
+        if (!in_array($fileType, ['jpg', 'jpeg', 'png'])) {
+            $errors['post_image'] = "Invalid file type, only JPG, JPEG, PNG are allowed.";
+        }
+        if ($fileImage["size"] > 20 * 1024 * 1024) {
+            $errors['post_image'] = "File is too large, expect smaller than 20MB";
+        }
+        if (empty($errors)) {
+            $upload_dir = "../../../uploads/";
+            $image_name = uniqid() . '_' . basename($fileImage["name"]);
+            $image_path = $upload_dir . $image_name;
+            move_uploaded_file($fileImage["tmp_name"], $image_path);
+        }
+    }
+
+    if (empty($errors)) {
+        if ($image_path) {
+            $sql_update = "UPDATE posts SET Title=?, Content=?, CategoryID=?, DestinationID=?, Image=?, Updated_at=NOW() WHERE PostID=? AND UserID=?";
+            $stmt_update = $conn->prepare($sql_update);
+            $stmt_update->bind_param("ssissii", $title, $content, $category_id, $destination_id, $image_path, $post_id, $user_id);
+        } else {
+            $sql_update = "UPDATE posts SET Title=?, Content=?, CategoryID=?, DestinationID=?, Updated_at=NOW() WHERE PostID=? AND UserID=?";
+            $stmt_update = $conn->prepare($sql_update);
+            $stmt_update->bind_param("ssissi", $title, $content, $category_id, $destination_id, $post_id, $user_id);
+        }
+        
+        if ($stmt_update->execute()) {
+            $success_message = "Post updated successfully!";
+            $stmt_my_posts = $conn->prepare($sql_my_posts);
+            $stmt_my_posts->bind_param("i", $user_id);
+            $stmt_my_posts->execute();
+            $my_posts = $stmt_my_posts->get_result()->fetch_all(MYSQLI_ASSOC);
+            $stmt_my_posts->close();
+        } else {
+            $errors['database'] = "Error updating post: " . $conn->error;
+        }
+        $stmt_update->close();
+    }
+}
+
+// Xử lý xóa bài viết
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_post'])) {
+    $post_id = (int)$_POST['post_id'];
+    $sql_delete = "DELETE FROM posts WHERE PostID=? AND UserID=?";
+    $stmt_delete = $conn->prepare($sql_delete);
+    $stmt_delete->bind_param("ii", $post_id, $user_id);
+    
+    if ($stmt_delete->execute()) {
+        $success_message = "Post deleted successfully!";
+        $stmt_my_posts = $conn->prepare($sql_my_posts);
+        $stmt_my_posts->bind_param("i", $user_id);
+        $stmt_my_posts->execute();
+        $my_posts = $stmt_my_posts->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt_my_posts->close();
+    } else {
+        $errors['database'] = "Error deleting post: " . $conn->error;
+    }
+    $stmt_delete->close();
 }
 
 // Lấy danh sách categories và destinations
@@ -492,10 +620,7 @@ function getQueryString($page) {
     </style>
 </head>
 <body>
-<?php 
-include("../../inc/_navbar.php"); 
-?>
-
+    <?php include '../../inc/_navbar.php'; ?>
     <div class="container py-5">
         <?php if ($success_message): ?>
             <div class="alert alert-success alert-dismissible fade show">
@@ -511,7 +636,7 @@ include("../../inc/_navbar.php");
         <div class="row">
             <div class="col-md-4">
                 <div class="profile-section text-center">
-                    <img src="<?= htmlspecialchars($user_data['Avatar'] ?? '../../uploads/default-avatar.jpg') ?>" 
+                    <img src="<?= htmlspecialchars($user_data['Avatar'] ?? '../../ploads/default-avatar.jpg') ?>" 
                          alt="Profile Picture" class="avatar mb-3">
                     <h3><?= htmlspecialchars($user_data['FirstName'] . ' ' . $user_data['LastName']) ?></h3>
                     <p class="text-muted"><?= htmlspecialchars($user_data['Email']) ?></p>
@@ -539,6 +664,18 @@ include("../../inc/_navbar.php");
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="bookings-tab" data-bs-toggle="tab" 
                                 data-bs-target="#tour-bookings" type="button" role="tab">Tour Bookings</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="my-requests-tab" data-bs-toggle="tab" 
+                                data-bs-target="#my-requests" type="button" role="tab">My Requests</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="my-posts-tab" data-bs-toggle="tab"
+                                data-bs-target="#my-posts" type="button" role="tab">My Posts</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="create-post-tab" data-bs-toggle="tab"
+                                data-bs-target="#create-post" type="button" role="tab">Create Post</button>
                     </li>
                 </ul>
                 
@@ -808,7 +945,7 @@ include("../../inc/_navbar.php");
                     </div>
                     
                     <!-- Tab Tour Bookings -->
-                    <div class="tab-pane fade" id="tour-tabs" role="tabpanel">
+                    <div class="tab-pane fade" id="tour-bookings" role="tabpanel">
                         <div class="posts-section">
                             <h4>Tour Bookings</h4>
                             <div class="filter-section">
@@ -868,11 +1005,10 @@ include("../../inc/_navbar.php");
                                             <th>Tour</th>
                                             <th>Guest</th>
                                             <th>People</th>
-                                            <th>Travel Date</th>
-                                            <th>End Date</th>
-                                            <th>Notes</th>
+                                            <th>Travel Dates</th>
+                                            <th>Price Per Person</th>
                                             <th>Status</th>
-                                            <th>Request Date</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -881,16 +1017,65 @@ include("../../inc/_navbar.php");
                                                 <td><?= htmlspecialchars($booking['title']) ?></td>
                                                 <td><?= htmlspecialchars($booking['guest_full_name']) ?></td>
                                                 <td><?= htmlspecialchars($booking['num_people']) ?></td>
-                                                <td><?= htmlspecialchars($booking['travel_date']) ?></td>
-                                                <td><?= htmlspecialchars($booking['end_date']) ?></td>
-                                                <td><?= htmlspecialchars($booking['notes'] ?? '-') ?></td>
-                                                <td><?= htmlspecialchars($booking['status']) ?></td>
-                                                <td><?= date('M d, Y', strtotime($booking['created_at'])) ?></td>
+                                                <td><?= htmlspecialchars(date('Y-m-d', strtotime($booking['travel_date'])) . ' to ' . date('Y-m-d', strtotime($booking['end_date']))) ?></td>
+                                                <td><?= htmlspecialchars($booking['price'] ?? '-') ?></td>
+                                                <td><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $booking['status']))) ?></td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton<?= $booking['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            Actions
+                                                        </button>
+                                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<?= $booking['id'] ?>">
+                                                            <li>
+                                                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#ownerViewModal<?= $booking['id'] ?>">View Details</a>
+                                                            </li>
+                                                            <li>
+                                                                <form action="profile.php" method="POST" class="d-inline-block">
+                                                                    <input type="hidden" name="action" value="change_status">
+                                                                    <input type="hidden" name="booking_id" value="<?= $booking['id'] ?>">
+                                                                    <select name="status" class="form-select" onchange="this.form.submit()">
+                                                                        <option value="" disabled selected>Change Status</option>
+                                                                        <option value="waiting_response">Waiting Response</option>
+                                                                        <option value="responded">Responded</option>
+                                                                        <option value="planning">Planning</option>
+                                                                        <option value="done">Done</option>
+                                                                        <option value="cancelled">Cancelled</option>
+                                                                    </select>
+                                                                </form>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
+                                            <!-- View Modal -->
+                                            <div class="modal fade" id="ownerViewModal<?= $booking['id'] ?>" tabindex="-1" aria-labelledby="ownerViewModalLabel<?= $booking['id'] ?>" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="ownerViewModalLabel<?= $booking['id'] ?>">Request Details: <?= htmlspecialchars($booking['title']) ?></h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p><strong>Tour:</strong> <?= htmlspecialchars($booking['title']) ?></p>
+                                                            <p><strong>Guest Full Name:</strong> <?= htmlspecialchars($booking['guest_full_name']) ?></p>
+                                                            <p><strong>Email:</strong> <?= htmlspecialchars($booking['email']) ?></p>
+                                                            <p><strong>Phone:</strong> <?= htmlspecialchars($booking['phone']) ?></p>
+                                                            <p><strong>Number of People:</strong> <?= htmlspecialchars($booking['num_people']) ?></p>
+                                                            <p><strong>Travel Date:</strong> <?= htmlspecialchars($booking['travel_date']) ?></p>
+                                                            <p><strong>End Date:</strong> <?= htmlspecialchars($booking['end_date']) ?></p>
+                                                            <p><strong>Price:</strong> <?= htmlspecialchars($booking['price'] ?? 'None') ?></p>
+                                                            <p><strong>Special Requests:</strong> <?= htmlspecialchars($booking['special_requests'] ?? 'None') ?></p>
+                                                            <p><strong>Status:</strong> <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $booking['status']))) ?></p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
-
                                 <!-- Pagination -->
                                 <nav aria-label="Page navigation">
                                     <ul class="pagination justify-content-center">
@@ -914,6 +1099,224 @@ include("../../inc/_navbar.php");
                             <?php endif; ?>
                         </div>
                     </div>
+                    
+                    <!-- Tab My Requests -->
+                    <div class="tab-pane fade" id="my-requests" role="tabpanel">
+    <div class="posts-section">
+        <h4>My Requests</h4>
+        <?php if (empty($my_requests)): ?>
+            <div class="alert alert-info">No booking requests found.</div>
+        <?php else: ?>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Tour</th>
+                        <th>Contact Name</th>
+                        <th>People</th>
+                        <th>Travel Dates</th>
+                        <th>Price Per Person</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($my_requests as $request): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($request['title']) ?></td>
+                            <td><?= htmlspecialchars($request['full_name']) ?></td>
+                            <td><?= htmlspecialchars($request['num_people']) ?></td>
+                            <td><?= htmlspecialchars(date('Y-m-d', strtotime($request['travel_date'])) . ' to ' . date('Y-m-d', strtotime($request['end_date']))) ?></td>
+                            <td><?= htmlspecialchars($request['price'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $request['status']))) ?></td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton<?= $request['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<?= $request['id'] ?>">
+                                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#guestViewModal<?= $request['id'] ?>">View Details</a></li>
+                                        <?php if ($request['status'] == 'waiting_response'): ?>
+                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editRequestModal<?= $request['id'] ?>">Edit Request</a></li>
+                                            <li><a class="dropdown-item" href="profile.php?action=cancel&booking_id=<?= $request['id'] ?>" onclick="return confirm('Are you sure you want to cancel this request?')">Delete Request</a></li>
+                                        <?php endif; ?>
+                                        <li>
+                                            <a class="dropdown-item <?= $request['status'] == 'planning' ? '' : 'disabled' ?>" 
+                                               href="<?= $request['status'] == 'planning' ? 'payment.php?booking_id=' . $request['id'] : '#' ?>" 
+                                               <?= $request['status'] == 'planning' ? '' : 'aria-disabled="true"' ?>>
+                                               Make Payment
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- View Modal -->
+                        <div class="modal fade" id="guestViewModal<?= $request['id'] ?>" tabindex="-1" aria-labelledby="guestViewModalLabel<?= $request['id'] ?>" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="guestViewModalLabel<?= $request['id'] ?>">Request Details: <?= htmlspecialchars($request['title']) ?></h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>Tour:</strong> <?= htmlspecialchars($request['title']) ?></p>
+                                        <p><strong>Guest Full Name:</strong> <?= htmlspecialchars($request['guest_full_name']) ?></p>
+                                        <p><strong>Contact Name:</strong> <?= htmlspecialchars($request['full_name']) ?></p>
+                                        <p><strong>Email:</strong> <?= htmlspecialchars($request['email']) ?></p>
+                                        <p><strong>Phone:</strong> <?= htmlspecialchars($request['phone']) ?></p>
+                                        <p><strong>Number of People:</strong> <?= htmlspecialchars($request['num_people']) ?></p>
+                                        <p><strong>Travel Date:</strong> <?= htmlspecialchars($request['travel_date']) ?></p>
+                                        <p><strong>End Date:</strong> <?= htmlspecialchars($request['end_date']) ?></p>
+                                        <p><strong>Price:</strong> <?= htmlspecialchars($request['price'] ?? 'None') ?></p>
+                                        <p><strong>Notes:</strong> <?= htmlspecialchars($request['notes'] ?? 'None') ?></p>
+                                        <p><strong>Special Requests:</strong> <?= htmlspecialchars($request['special_requests'] ?? 'None') ?></p>
+                                        <p><strong>Status:</strong> <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $request['status']))) ?></p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Edit Request Modal -->
+                        <?php if ($request['status'] == 'waiting_response'): ?>
+                            <div class="modal fade" id="editRequestModal<?= $request['id'] ?>" tabindex="-1" aria-labelledby="editRequestModalLabel<?= $request['id'] ?>" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editRequestModalLabel<?= $request['id'] ?>">Edit Request: <?= htmlspecialchars($request['title']) ?></h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="POST" action="">
+                                                <input type="hidden" name="action" value="edit_request">
+                                                <input type="hidden" name="booking_id" value="<?= $request['id'] ?>">
+                                                <div class="mb-3">
+                                                    <label for="full_name<?= $request['id'] ?>" class="form-label">Contact Name</label>
+                                                    <input type="text" class="form-control" id="full_name<?= $request['id'] ?>" name="full_name" value="<?= htmlspecialchars($request['full_name']) ?>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="guest_full_name<?= $request['id'] ?>" class="form-label">Guest Full Name</label>
+                                                    <input type="text" class="form-control" id="guest_full_name<?= $request['id'] ?>" name="guest_full_name" value="<?= htmlspecialchars($request['guest_full_name']) ?>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="email<?= $request['id'] ?>" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="email<?= $request['id'] ?>" name="email" value="<?= htmlspecialchars($request['email']) ?>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="phone<?= $request['id'] ?>" class="form-label">Phone</label>
+                                                    <input type="text" class="form-control" id="phone<?= $request['id'] ?>" name="phone" value="<?= htmlspecialchars($request['phone']) ?>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="num_people<?= $request['id'] ?>" class="form-label">Number of People</label>
+                                                    <input type="number" class="form-control" id="num_people<?= $request['id'] ?>" name="num_people" value="<?= htmlspecialchars($request['num_people']) ?>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="travel_date<?= $request['id'] ?>" class="form-label">Travel Date</label>
+                                                    <input type="date" class="form-control" id="travel_date<?= $request['id'] ?>" name="travel_date" value="<?= htmlspecialchars($request['travel_date']) ?>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="end_date<?= $request['id'] ?>" class="form-label">End Date</label>
+                                                    <input type="date" class="form-control" id="end_date<?= $request['id'] ?>" name="end_date" value="<?= htmlspecialchars($request['end_date']) ?>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="notes<?= $request['id'] ?>" class="form-label">Notes</label>
+                                                    <textarea class="form-control" id="notes<?= $request['id'] ?>" name="notes" rows="4"><?= htmlspecialchars($request['notes'] ?? '') ?></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="price<?= $request['id'] ?>" class="form-label">Price</label>
+                                                    <input type="text" class="form-control" id="price<?= $request['id'] ?>" name="price" value="<?= htmlspecialchars($request['price'] ?? '') ?>" readonly>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="special_requests<?= $request['id'] ?>" class="form-label">Special Requests</label>
+                                                    <textarea class="form-control" id="special_requests<?= $request['id'] ?>" name="special_requests" rows="4"><?= htmlspecialchars($request['special_requests'] ?? '') ?></textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Update Request</button>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+</div>
+                    
+                    <!-- Tab My Posts -->
+                    <div class="tab-pane fade" id="my-posts" role="tabpanel">
+    <div class="posts-section">
+        <h4>My Posts</h4>
+        <?php if (empty($my_posts)): ?>
+            <div class="alert alert-info">You haven't created any posts yet.</div>
+        <?php else: ?>
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                <?php foreach ($my_posts as $post): ?>
+                    <div class="col">
+                        <div class="card">
+                            <img src="<?= htmlspecialchars($post['Image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($post['Title']) ?>">
+                            <div class="card-body">
+                                <h5 class="card-title"><?= htmlspecialchars($post['Title']) ?></h5>
+                                <p class="card-text"><?= htmlspecialchars(mb_strimwidth($post['Content'], 0, 100, '...')) ?></p>
+                                <p class="card-text"><strong>Category:</strong> <?= htmlspecialchars($post['category_name']) ?></p>
+                                <p class="card-text"><strong>Destination:</strong> <?= htmlspecialchars($post['destination_name']) ?></p>
+                                <p class="card-text"><small class="text-muted">Created: <?= htmlspecialchars($post['Created_at']) ?></small></p>
+                                <a href="post_detail.php?post_id=<?= $post['PostID'] ?>" class="btn btn-primary btn-sm">View</a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+                    <!-- Tab Create Post -->
+                    <div class="tab-pane fade" id="create-post" role="tabpanel">
+    <div class="posts-section">
+        <h4>Create New Post</h4>
+        <form method="POST" action="user_createpost.php" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+                <label for="content" class="form-label">Content</label>
+                <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="category_id" class="form-label">Category</label>
+                    <select class="form-control" id="category_id" name="category_id" required>
+                        <option value="">Select Category</option>
+                        <?php foreach ($categories as $category): ?>
+                            <option value="<?= $category['CategoryID'] ?>"><?= htmlspecialchars($category['Name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="destination_id" class="form-label">Destination</label>
+                    <select class="form-control" id="destination_id" name="destination_id" required>
+                        <option value="">Select Destination</option>
+                        <?php foreach ($destinations as $destination): ?>
+                            <option value="<?= $destination['DestinationID'] ?>"><?= htmlspecialchars($destination['Name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="fileImage" class="form-label">Image</label>
+                <input type="file" class="form-control" id="fileImage" name="fileImage" accept="image/jpeg,image/png" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Post</button>
+        </form>
+    </div>
+</div>
                 </div>
             </div>
         </div>

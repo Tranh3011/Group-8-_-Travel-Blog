@@ -87,8 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -98,75 +96,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #003366;
-            color: #FFF8E1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
         }
         .container {
-            background-color: #FFF8E1;
-            color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            width: 400px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            margin: 48px auto 0 auto;
+            padding: 0 16px;
         }
         h1 {
             text-align: center;
-            color: #003366;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-        input, textarea, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            border: 1px solid #003366;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #228B22;
-            color: #FFF8E1;
+            color: #2d3e50;
+            margin-bottom: 32px;
+            font-size: 2.2rem;
             font-weight: bold;
-            cursor: pointer;
+            letter-spacing: 0.5px;
         }
-        button:hover {
-            background-color: #003366;
-            color: #FFF8E1;
+        form {
+            width: 100%;
+        }
+        .input-group {
+            margin-bottom: 22px;
+            width: 100%;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+            font-size: 1.08rem;
+        }
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #dfe4ea;
+            border-radius: 6px;
+            font-size: 1.08rem;
+            background: #f9fafb;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        .input-group input:focus,
+        .input-group textarea:focus {
+            border-color: #2980b9;
+            outline: none;
+        }
+        .button-group {
+            text-align: center;
+            margin-top: 28px;
+        }
+        .button-group button {
+            background-color: #2980b9;
+            color: #fff;
+            font-weight: bold;
+            padding: 13px 48px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.08rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .button-group button:hover {
+            background-color: #1a5d8f;
         }
         .error {
             color: red;
-            font-size: 0.9em;
+            font-size: 0.95em;
+            margin-top: 4px;
+        }
+        .current-image {
+            margin-bottom: 12px;
+        }
+        .current-image a {
+            color: #2980b9;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
+    <?php include("../../inc/_navbar.php"); ?>
     <div class="container">
         <h1>Update Destination</h1>
         <form action="" method="POST" enctype="multipart/form-data">
-            <label for="name">Destination Name:</label>
-            <input type="text" id="Name" name="Name" value="<?php echo htmlspecialchars($name); ?>" required>
-            <?php if (isset($errors['Name'])) echo "<p class='error'>{$errors['Name']}</p>"; ?>
-
-            <label for="description">Describe:</label>
-            <textarea id="Description" name="Description" rows="4" required><?php echo htmlspecialchars($description); ?></textarea>
-            <?php if (isset($errors['Description'])) echo "<p class='error'>{$errors['Description']}</p>"; ?>
-
-            <label for="location">Location:</label>
-            <input type="text" id="Location" name="Location" value="<?php echo htmlspecialchars($location); ?>" required>
-            <?php if (isset($errors['Location'])) echo "<p class='error'>{$errors['Location']}</p>"; ?>
-
-            <label for="image">Image:</label>
-            <input type="file" id="image" name="image" accept="image/*">
-            <p>Current image: <a href="<?php echo htmlspecialchars($image); ?>" target="_blank">View Image</a></p>
-            <?php if (isset($errors['image'])) echo "<p class='error'>{$errors['image']}</p>"; ?>
-
-            <button type="submit">Update</button>
+            <div class="input-group">
+                <label for="Name">Destination Name:</label>
+                <input type="text" id="Name" name="Name" value="<?php echo htmlspecialchars($name); ?>" required>
+                <?php if (isset($errors['Name'])) echo "<div class='error'>{$errors['Name']}</div>"; ?>
+            </div>
+            <div class="input-group">
+                <label for="Description">Describe:</label>
+                <textarea id="Description" name="Description" rows="4" required><?php echo htmlspecialchars($description); ?></textarea>
+                <?php if (isset($errors['Description'])) echo "<div class='error'>{$errors['Description']}</div>"; ?>
+            </div>
+            <div class="input-group">
+                <label for="Location">Location:</label>
+                <input type="text" id="Location" name="Location" value="<?php echo htmlspecialchars($location); ?>" required>
+                <?php if (isset($errors['Location'])) echo "<div class='error'>{$errors['Location']}</div>"; ?>
+            </div>
+            <div class="input-group">
+                <label for="image">Image:</label>
+                <input type="file" id="image" name="image" accept="image/*">
+                <div class="current-image">
+                    Current image: <a href="<?php echo htmlspecialchars($image); ?>" target="_blank">View Image</a>
+                </div>
+                <?php if (isset($errors['image'])) echo "<div class='error'>{$errors['image']}</div>"; ?>
+            </div>
+            <div class="button-group">
+                <button type="submit">Update</button>
+                <a href="Destination.php" class="btn btn-secondary" style="margin-left: 10px; background: #ccc; color: #333; border-radius: 6px; padding: 13px 30px; text-decoration: none;">Cancel</a>
+            </div>
         </form>
     </div>
 </body>

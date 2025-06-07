@@ -29,6 +29,7 @@ $stmt = $conn->prepare($sql);
 if (!$stmt) {
     die('Prepare failed: ' . $conn->error);
 }
+// Fix: $tour_post_id -> $tour_id in bind_param
 $stmt->bind_param("i", $tour_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -345,59 +346,74 @@ $conn->close();
 
     <!-- Booking Modal -->
     <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bookingModalLabel">Book Tour: <?php echo htmlspecialchars($tour['title']); ?></h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="booking_create.php" method="POST" id="bookingForm">
-                    <div class="modal-body">
-                        <input type="hidden" name="tour_id" value="<?php echo $tour['id']; ?>">
-                        <div class="mb-3">
-                            <label for="full_name" class="form-label">Full Name</label>
-                            <input type="text" id="full_name" name="full_name" class="form-control" 
-                                   value="<?php echo htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')); ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" id="email" name="email" class="form-control" 
-                                   value="<?php echo htmlspecialchars($user['Email'] ?? ''); ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" class="form-control" 
-                                   value="<?php echo htmlspecialchars($user['PhoneNumber'] ?? ''); ?>" pattern="[0-9]{10,15}" required>
-                            <small class="form-text text-muted">Enter 10-15 digits (e.g., 1234567890).</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="participants" class="form-label">Number of Participants</label>
-                            <input type="number" id="participants" name="participants" class="form-control" 
-                                   min="1" max="<?php echo htmlspecialchars($tour['group_size']); ?>" value="1" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="booking_date" class="form-label">Booking Date</label>
-                            <input type="date" id="booking_date" name="booking_date" class="form-control" 
-                                   min="<?php echo date('Y-m-d'); ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="special_requests" class="form-label">Special Requests</label>
-                            <textarea id="special_requests" name="special_requests" class="form-control" rows="4"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="total_price" class="form-label">Total Price ($)</label>
-                            <input type="text" id="total_price" name="total_price" class="form-control" 
-                                   value="<?php echo number_format($tour['price'], 2); ?>" readonly>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-booking">Proceed to Payment</button>
-                    </div>
-                </form>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookingModalLabel">Book Tour: <?php echo htmlspecialchars($tour['title']); ?></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <form id="bookingForm" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="tour_post_id" value="<?php echo $tour['id']; ?>">
+                    <input type="hidden" name="owner_user_id" value="<?php echo $tour['user_id'] ?? 0; ?>"> <!-- Adjust if user_id is stored in tour_posts -->
+                    <div class="mb-3">
+                        <label for="guest_full_name" class="form-label">Guest Full Name</label>
+                        <input type="text" id="guest_full_name" name="guest_full_name" class="form-control" 
+                               value="<?php echo htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Contact Name</label>
+                        <input type="text" id="full_name" name="full_name" class="form-control" 
+                               value="<?php echo htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" 
+                               value="<?php echo htmlspecialchars($user['Email'] ?? ''); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" 
+                               value="<?php echo htmlspecialchars($user['PhoneNumber'] ?? ''); ?>" pattern="[0-9]{10,15}" required>
+                        <small class="form-text text-muted">Enter 10-15 digits (e.g., 1234567890).</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="num_people" class="form-label">Number of Participants</label>
+                        <input type="number" id="num_people" name="num_people" class="form-control" 
+                               min="1" max="<?php echo htmlspecialchars($tour['group_size']); ?>" value="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="travel_date" class="form-label">Travel Start Date</label>
+                        <input type="date" id="travel_date" name="travel_date" class="form-control" 
+                               min="<?php echo date('Y-m-d'); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">Travel End Date</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control" 
+                               min="<?php echo date('Y-m-d'); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea id="notes" name="notes" class="form-control" rows="4"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="special_requests" class="form-label">Special Requests</label>
+                        <textarea id="special_requests" name="special_requests" class="form-control" rows="4"></textarea>
+                    </div>
+<div class="mb-3">
+    <label for="total_price" class="form-label">Total Price ($)</label>
+    <input type="text" id="total_price" name="total_price" class="form-control" 
+           value="<?php echo number_format($tour['price'] ?? 0, 2); ?>" readonly>
+</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-booking">Submit Request</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>     
 
     <footer>
         <div class="container py-3">
@@ -431,22 +447,51 @@ $conn->close();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <script>
-        const pricePerPerson = <?php echo $tour['price'] ?? 0; ?>;
-        const participantsInput = document.getElementById('participants');
-        const totalPriceInput = document.getElementById('total_price');
+    const pricePerPerson = <?php echo $tour['price'] ?? 0; ?>;
+    const participantsInput = document.getElementById('num_people');
+    const totalPriceInput = document.getElementById('total_price');
 
-        participantsInput.addEventListener('input', function() {
-            const participants = parseInt(this.value) || 1;
-            totalPriceInput.value = (pricePerPerson * participants).toFixed(2);
-        });
+    participantsInput.addEventListener('input', function() {
+        const participants = parseInt(this.value) || 1;
+        totalPriceInput.value = (pricePerPerson * participants).toFixed(2);
+    });
 
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
-            const phone = document.getElementById('phone').value;
-            if (!/^[0-9]{10,15}$/.test(phone)) {
-                e.preventDefault();
-                alert('Please enter a valid phone number (10-15 digits).');
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const phone = document.getElementById('phone').value;
+        const travelDate = document.getElementById('travel_date').value;
+        const endDate = document.getElementById('end_date').value;
+
+        if (!/^[0-9]{10,15}$/.test(phone)) {
+            alert('Please enter a valid phone number (10-15 digits).');
+            return;
+        }
+        if (new Date(endDate) <= new Date(travelDate)) {
+            alert('End date must be after travel start date.');
+            return;
+        }
+
+        const formData = new FormData(this);
+        fetch('booking_create.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Booking request sent successfully!');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('bookingModal'));
+                modal.hide();
+                document.getElementById('bookingForm').reset();
+                totalPriceInput.value = pricePerPerson.toFixed(2);
+            } else {
+                alert('Error: ' + (data.message || 'Failed to send booking request.'));
             }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
         });
-    </script>
+    });
+</script>
 </body>
 </html>

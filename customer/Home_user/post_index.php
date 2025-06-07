@@ -118,7 +118,15 @@ if ($result_all_posts) {
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="col-12">
-                    <div class="alert alert-info text-center">No posts found.</div>
+                    <div class="alert alert-info text-center">
+                        <?php
+                        if ($filter_category || $filter_destination) {
+                            echo "No posts found for your filter.";
+                        } else {
+                            echo "No posts found.";
+                        }
+                        ?>
+                    </div>
                 </div>
             <?php endif; ?>
         </div>
